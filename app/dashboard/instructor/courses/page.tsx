@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import InstructorHeader from "@/components/dashboard/instructor/header";
 import { Clock, BookOpen, Users, Plus, Edit, Eye, MoreVertical } from "lucide-react";
+import DeleteCourseButton from "@/components/dashboard/instructor/delete-course-button";
 
 export default async function InstructorCoursesPage() {
   const session = await auth.api.getSession({
@@ -128,6 +129,7 @@ export default async function InstructorCoursesPage() {
                   <Link href={`/dashboard/instructor/courses/${course.id}/edit`} className="flex-1 flex justify-center py-2.5 hover:bg-white rounded-xl text-slate-400 hover:text-blue-600 transition-colors">
                     <Edit size={18} />
                   </Link>
+                  <DeleteCourseButton courseId={course.id} courseTitle={course.title} />
                 </div>
               </div>
             ))}
