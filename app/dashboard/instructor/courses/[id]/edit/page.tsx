@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Save, Loader2, Video, Plus, Trash2, GripVertical, CheckCircle2, FileQuestion, Type, Clock, Globe, FileText, Calendar } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Video, Plus, Trash2, GripVertical, CheckCircle2, FileQuestion, Type, Clock, Globe, FileText, Calendar, Pencil, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { QuizBuilder } from "@/components/dashboard/instructor/quiz-builder";
 import { useToast } from "@/components/ui/toast-provider";
@@ -36,6 +36,14 @@ export default function EditCoursePage() {
   // Add Lesson State
   const [isAddingLesson, setIsAddingLesson] = useState(false);
   const [newLesson, setNewLesson] = useState({ title: "", description: "", videoUrl: "", duration: "", isFree: false });
+
+  // Edit Lesson State
+  const [editingLesson, setEditingLesson] = useState<any | null>(null);
+  const [editLessonData, setEditLessonData] = useState({ title: "", videoUrl: "", duration: "", isFree: false });
+
+  // Edit Assignment State
+  const [editingAssignment, setEditingAssignment] = useState<any | null>(null);
+  const [editAssignmentData, setEditAssignmentData] = useState({ title: "", description: "", dueDate: "" });
 
   // Delete State
   const [confirmDeleteLesson, setConfirmDeleteLesson] = useState<any | null>(null);
@@ -148,14 +156,44 @@ export default function EditCoursePage() {
   const handleDeleteQuiz = async (quizId: number) => {
     if (!confirm("Hapus kuis ini?")) return;
     try {
-      const res = await fetch(`/api/instructor/quizzes/${quizId}`, {
-        method: "DELETE"
-      });
+      const res = await fetch(`/api/instructor/quizzes/${quizId}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Failed to delete quiz");
       setQuizzes(quizzes.filter(q => q.id !== quizId));
       toast.success("Kuis Dihapus", "Kuis telah dihapus dari kursus.");
     } catch (err: any) {
       toast.error("Gagal", err.message);
+    }
+  };
+
+  const handleEditLesson = (lesson: any) => {
+    setEditingLesson(lesson);
+    setEditLessonData({
+      title: lesson.title,
+      videoUrl: lesson.videoUrl || "",
+      duration: lesson.duration?.toString() || "",
+      isFree: lesson.isFree || false,
+    });
+  };
+
+  const handleUpdateLesson = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingLesson) return;
+    setIsSaving(true);
+    try {
+      const res = await fetch(`/api/instructor/courses/${courseId}/lessons/${editingLesson.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editLessonData),
+      });
+      if (!res.ok) throw new Error("Gagal memperbarui materi");
+      const updated = await res.json();
+      setLessons(lessons.map(l => (l.id === editingLesson.id ? { ...l, ...updated } : l)));
+      setEditingLesson(null);
+      toast.success("Materi Diperbarui", `"${updated.title}" berhasil diperbarui.`);
+    } catch (err: any) {
+      toast.error("Gagal", err.message);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -166,7 +204,7 @@ export default function EditCoursePage() {
       const res = await fetch(`/api/instructor/courses/${courseId}/assignments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newAssignment)
+        body: JSON.stringify(newAssignment),
       });
       if (!res.ok) throw new Error("Failed to add assignment");
       const added = await res.json();
@@ -181,12 +219,41 @@ export default function EditCoursePage() {
     }
   };
 
+  const handleEditAssignment = (assignment: any) => {
+    setEditingAssignment(assignment);
+    setEditAssignmentData({
+      title: assignment.title,
+      description: assignment.description || "",
+      dueDate: assignment.dueDate ? new Date(assignment.dueDate).toISOString().split("T")[0] : "",
+    });
+  };
+
+  const handleUpdateAssignment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingAssignment) return;
+    setIsSaving(true);
+    try {
+      const res = await fetch(`/api/instructor/assignments/${editingAssignment.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editAssignmentData),
+      });
+      if (!res.ok) throw new Error("Gagal memperbarui tugas");
+      const updated = await res.json();
+      setAssignments(assignments.map(a => (a.id === editingAssignment.id ? { ...a, ...updated } : a)));
+      setEditingAssignment(null);
+      toast.success("Tugas Diperbarui", `"${updated.title}" berhasil diperbarui.`);
+    } catch (err: any) {
+      toast.error("Gagal", err.message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleDeleteAssignment = async (id: number) => {
     if (!confirm("Hapus tugas ini?")) return;
     try {
-      const res = await fetch(`/api/instructor/assignments/${id}`, {
-        method: "DELETE"
-      });
+      const res = await fetch(`/api/instructor/assignments/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Failed to delete assignment");
       setAssignments(assignments.filter(a => a.id !== id));
       toast.success("Tugas Dihapus", "Penugasan telah dihapus.");
@@ -387,34 +454,69 @@ export default function EditCoursePage() {
                 </div>
               )}
               {lessons.map((lesson, idx) => (
-                <div key={lesson.id} className="flex items-center gap-4 p-5 bg-white border border-slate-100 rounded-3xl hover:shadow-xl hover:shadow-slate-100/50 transition-all group relative">
-                  <div className="cursor-grab text-slate-300 hover:text-slate-500">
-                    <GripVertical size={20} />
-                  </div>
-                  <div className="w-12 h-12 rounded-2xl bg-orange-50 text-[#FF6B4A] flex items-center justify-center font-black shadow-sm group-hover:scale-110 transition-transform">
-                    {idx + 1}
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-black text-slate-800 text-sm flex items-center gap-2">
-                       {lesson.title}
-                       {lesson.isFree && <span className="bg-green-100 text-green-700 text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-wider">Preview</span>}
-                    </h4>
-                    <div className="flex items-center gap-3 mt-1.5">
-                       <span className="text-[10px] text-slate-400 font-black flex items-center gap-1 uppercase">
-                          <Clock size={10} /> {lesson.duration} Menit
-                       </span>
-                       <span className="w-1 h-1 bg-slate-200 rounded-full" />
-                       <span className="text-[10px] text-slate-400 font-black flex items-center gap-1 uppercase">
-                          <Video size={10} /> Video
-                       </span>
+                <div key={lesson.id}>
+                  {editingLesson?.id === lesson.id ? (
+                    /* ── Inline Edit Form ─── */
+                    <form onSubmit={handleUpdateLesson} className="bg-orange-50/50 border-2 border-orange-100 rounded-3xl p-6 space-y-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] font-black text-orange-600 uppercase tracking-widest">Edit Materi #{idx + 1}</span>
+                        <button type="button" onClick={() => setEditingLesson(null)} className="text-slate-400 hover:text-slate-600 transition-colors">
+                          <X size={18} />
+                        </button>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Judul Materi</label>
+                        <input type="text" required value={editLessonData.title} onChange={e => setEditLessonData({...editLessonData, title: e.target.value})} className="w-full h-11 bg-white border border-slate-200 rounded-xl px-4 text-sm font-bold outline-none focus:border-[#FF6B4A] focus:ring-4 focus:ring-orange-50 transition-all" />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-1"><Globe size={10} /> URL Video</label>
+                          <input type="text" value={editLessonData.videoUrl} onChange={e => setEditLessonData({...editLessonData, videoUrl: e.target.value})} placeholder="https://youtube.com/..." className="w-full h-11 bg-white border border-slate-200 rounded-xl px-4 text-sm font-bold outline-none focus:border-[#FF6B4A] focus:ring-4 focus:ring-orange-50 transition-all" />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-1"><Clock size={10} /> Durasi (Menit)</label>
+                          <input type="number" required value={editLessonData.duration} onChange={e => setEditLessonData({...editLessonData, duration: e.target.value})} className="w-full h-11 bg-white border border-slate-200 rounded-xl px-4 text-sm font-bold outline-none focus:border-[#FF6B4A] focus:ring-4 focus:ring-orange-50 transition-all" />
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 bg-white w-fit px-4 py-2 rounded-xl border border-slate-100 shadow-sm">
+                        <input type="checkbox" id={`isFree-${lesson.id}`} checked={editLessonData.isFree} onChange={e => setEditLessonData({...editLessonData, isFree: e.target.checked})} className="w-4 h-4 rounded text-[#FF6B4A]" />
+                        <label htmlFor={`isFree-${lesson.id}`} className="text-xs font-black text-slate-600">Video Gratis (Preview)</label>
+                      </div>
+                      <div className="flex gap-3 pt-2">
+                        <Button type="button" onClick={() => setEditingLesson(null)} variant="ghost" className="h-10 px-5 rounded-xl font-black text-slate-400 text-sm">Batal</Button>
+                        <Button type="submit" disabled={isSaving} className="h-10 bg-[#FF6B4A] hover:bg-[#e55a3d] text-white rounded-xl px-6 font-black text-sm shadow-md shadow-orange-100">{isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}</Button>
+                      </div>
+                    </form>
+                  ) : (
+                    /* ── Lesson Card ─── */
+                    <div className="flex items-center gap-4 p-5 bg-white border border-slate-100 rounded-3xl hover:shadow-xl hover:shadow-slate-100/50 transition-all group relative">
+                      <div className="cursor-grab text-slate-300 hover:text-slate-500">
+                        <GripVertical size={20} />
+                      </div>
+                      <div className="w-12 h-12 rounded-2xl bg-orange-50 text-[#FF6B4A] flex items-center justify-center font-black shadow-sm group-hover:scale-110 transition-transform">
+                        {idx + 1}
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-black text-slate-800 text-sm flex items-center gap-2">
+                          {lesson.title}
+                          {lesson.isFree && <span className="bg-green-100 text-green-700 text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-wider">Preview</span>}
+                        </h4>
+                        <div className="flex items-center gap-3 mt-1.5">
+                          <span className="text-[10px] text-slate-400 font-black flex items-center gap-1 uppercase"><Clock size={10} /> {lesson.duration} Menit</span>
+                          <span className="w-1 h-1 bg-slate-200 rounded-full" />
+                          <span className="text-[10px] text-slate-400 font-black flex items-center gap-1 uppercase"><Video size={10} /> Video</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                        <button onClick={() => handleEditLesson(lesson)} className="p-3 text-slate-300 hover:text-[#FF6B4A] hover:bg-orange-50 rounded-2xl transition-all">
+                          <Pencil size={16} />
+                        </button>
+                        <button onClick={() => setConfirmDeleteLesson(lesson)} className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all">
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                  <button 
-                    onClick={() => setConfirmDeleteLesson(lesson)} 
-                    className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all opacity-0 group-hover:opacity-100"
-                  >
-                    <Trash2 size={18} />
-                  </button>
+                  )}
                 </div>
               ))}
             </div>
@@ -528,28 +630,59 @@ export default function EditCoursePage() {
                   </div>
                 )}
                 {assignments.map((assignment: any) => (
-                  <div key={assignment.id} className="p-6 bg-white border border-slate-100 rounded-[2rem] hover:shadow-xl transition-all flex items-center gap-5 group border-b-4 border-b-orange-50 hover:border-b-orange-500">
-                    <div className="w-14 h-14 rounded-2xl bg-orange-50 text-[#FF6B4A] flex items-center justify-center font-black shrink-0 shadow-sm transition-transform group-hover:scale-110">
-                      <FileText size={24} />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-black text-slate-800 text-sm leading-tight">{assignment.title}</h4>
-                      <div className="flex items-center gap-2 mt-2">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                          <Calendar size={10} /> {new Date(assignment.dueDate).toLocaleDateString("id-ID", { day:'2-digit', month:'short' })}
-                        </span>
-                        <span className="w-1 h-1 bg-slate-200 rounded-full" />
-                        <span className="text-[10px] font-black text-orange-500 uppercase tracking-widest">
-                          Tugas Proyek
-                        </span>
+                  <div key={assignment.id}>
+                    {editingAssignment?.id === assignment.id ? (
+                      /* ── Inline Edit Form ─── */
+                      <form onSubmit={handleUpdateAssignment} className="bg-orange-50/50 border-2 border-orange-100 rounded-[2rem] p-6 space-y-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-[10px] font-black text-orange-600 uppercase tracking-widest">Edit Tugas</span>
+                          <button type="button" onClick={() => setEditingAssignment(null)} className="text-slate-400 hover:text-slate-600 transition-colors">
+                            <X size={18} />
+                          </button>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Judul Tugas</label>
+                          <input type="text" required value={editAssignmentData.title} onChange={e => setEditAssignmentData({...editAssignmentData, title: e.target.value})} className="w-full h-11 bg-white border border-slate-200 rounded-xl px-4 text-sm font-bold outline-none focus:border-[#FF6B4A] focus:ring-4 focus:ring-orange-50 transition-all" />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-1"><Calendar size={10} /> Deadline</label>
+                          <input type="date" required value={editAssignmentData.dueDate} onChange={e => setEditAssignmentData({...editAssignmentData, dueDate: e.target.value})} className="w-full h-11 bg-white border border-slate-200 rounded-xl px-4 text-sm font-bold outline-none focus:border-[#FF6B4A] focus:ring-4 focus:ring-orange-50 transition-all" />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Deskripsi & Instruksi</label>
+                          <textarea rows={3} value={editAssignmentData.description} onChange={e => setEditAssignmentData({...editAssignmentData, description: e.target.value})} className="w-full bg-white border border-slate-200 rounded-xl p-4 text-sm font-medium outline-none focus:ring-4 focus:ring-orange-50 transition-all resize-none" />
+                        </div>
+                        <div className="flex gap-3 pt-2">
+                          <Button type="button" onClick={() => setEditingAssignment(null)} variant="ghost" className="h-10 px-5 rounded-xl font-black text-slate-400 text-sm">Batal</Button>
+                          <Button type="submit" disabled={isSaving} className="h-10 bg-[#FF6B4A] hover:bg-[#e55a3d] text-white rounded-xl px-6 font-black text-sm shadow-md shadow-orange-100">{isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}</Button>
+                        </div>
+                      </form>
+                    ) : (
+                      /* ── Assignment Card ─── */
+                      <div className="p-6 bg-white border border-slate-100 rounded-[2rem] hover:shadow-xl transition-all flex items-center gap-5 group border-b-4 border-b-orange-50 hover:border-b-orange-500">
+                        <div className="w-14 h-14 rounded-2xl bg-orange-50 text-[#FF6B4A] flex items-center justify-center font-black shrink-0 shadow-sm transition-transform group-hover:scale-110">
+                          <FileText size={24} />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-black text-slate-800 text-sm leading-tight">{assignment.title}</h4>
+                          <div className="flex items-center gap-2 mt-2">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                              <Calendar size={10} /> {new Date(assignment.dueDate).toLocaleDateString("id-ID", { day:'2-digit', month:'short' })}
+                            </span>
+                            <span className="w-1 h-1 bg-slate-200 rounded-full" />
+                            <span className="text-[10px] font-black text-orange-500 uppercase tracking-widest">Tugas Proyek</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                          <button onClick={() => handleEditAssignment(assignment)} className="p-2 text-slate-300 hover:text-[#FF6B4A] hover:bg-orange-50 rounded-xl transition-all">
+                            <Pencil size={16} />
+                          </button>
+                          <button onClick={() => handleDeleteAssignment(assignment.id)} className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all">
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                    <button 
-                      onClick={() => handleDeleteAssignment(assignment.id)} 
-                      className="p-2 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all hover:bg-red-50 rounded-xl"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                    )}
                   </div>
                 ))}
               </div>

@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     }
 
     const coupon = await db.coupon.findUnique({
-      where: { code },
+      where: { code: code.toUpperCase() },
     });
 
     if (!coupon || coupon.isDeleted === 1 || coupon.status !== 1) {

@@ -97,7 +97,10 @@ export default function AdminCouponsPage() {
         body: JSON.stringify(formData)
       });
       
-      if (!res.ok) throw new Error("Gagal menyimpan kupon");
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || "Gagal menyimpan kupon");
+      }
       
       toast.success("Berhasil", isEditing ? "Kupon diperbarui" : "Kupon ditambahkan");
       setIsSheetOpen(false);

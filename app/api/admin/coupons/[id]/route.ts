@@ -24,6 +24,19 @@ export async function PATCH(
     const body = await req.json();
     const { code, discountPercent, maxUses, validUntil, status } = body;
 
+    if (code) {
+      const upperCode = code.toUpperCase();
+      const existingCoupon = await db.coupon.findUnique({
+        where: { code: upperCode }
+      });
+      if (existingCoupon && existingCoupon.id !== couponId) {
+        return NextResponse.json(
+          { error: `Kode kupon "${upperCode}" sudah digunakan oleh kupon lain.` },
+          { status: 400 }
+        );
+      }
+    }
+
     const coupon = await db.coupon.update({
       where: { id: couponId },
       data: {
