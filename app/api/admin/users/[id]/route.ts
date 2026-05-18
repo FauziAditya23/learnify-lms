@@ -11,26 +11,28 @@ async function guardAdmin() {
   return session.user;
 }
 
+// PATCH — update profil ATAU toggle status (nonaktifkan/aktifkan)
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const user = await guardAdmin();
-  if (!user) {
+  const adminUser = await guardAdmin();
+  if (!adminUser) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   try {
     const { id } = await params;
-    const { name, email, status } = await req.json();
+    const body = await req.json();
+    const { name, email, status } = body;
 
     const updatedUser = await db.user.update({
       where: { id },
       data: {
-        name,
-        email: email?.toLowerCase(),
-        status: status !== undefined ? Number(status) : undefined,
-        lastUpdatedBy: user.name || "ADMIN",
+        ...(name !== undefined ? { name } : {}),
+        ...(email !== undefined ? { email: email.toLowerCase() } : {}),
+        ...(status !== undefined ? { status: Number(status) } : {}),
+        lastUpdatedBy: adminUser.name || "ADMIN",
       },
     });
 
@@ -40,28 +42,27 @@ export async function PATCH(
   }
 }
 
+// DELETE — hapus PERMANEN dari database (hard delete)
 export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const user = await guardAdmin();
-  if (!user) {
+  const adminUser = await guardAdmin();
+  if (!adminUser) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   try {
     const { id } = await params;
 
-    const deletedUser = await db.user.update({
-      where: { id },
-      data: {
-        isDeleted: 1,
-        status: 0,
-        lastUpdatedBy: user.name || "ADMIN",
-      },
-    });
+    // Prevent admin from deleting themselves
+    if (id === adminUser.id) {
+      return NextResponse.json({ error: "Tidak dapat menghapus akun sendiri" }, { status: 400 });
+    }
 
-    return NextResponse.json({ success: true, user: deletedUser });
+    await db.user.delete({ where: { id } });
+
+    return NextResponse.json({ success: true });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

@@ -76,19 +76,32 @@ export const auth = betterAuth({
     session: {
       created: async (data: any) => {
         try {
-          // Fix roleId admin jika login Google (user sudah ada) tapi roleId belum 1
-          const adminEmailsStr = process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || "";
-          const adminEmails = adminEmailsStr.split(",").map(e => e.trim().toLowerCase());
-          const userEmail = data.user?.email?.toLowerCase();
+          // ── 1. Blokir akun yang dinonaktifkan ──────────────────────────
+          const freshUser = await db.user.findUnique({
+            where: { id: data.user.id },
+            select: { status: true, isDeleted: true, email: true, roleId: true },
+          });
 
-          if (userEmail && adminEmails.includes(userEmail) && (data.user as any).roleId !== 1) {
+          if (!freshUser || freshUser.isDeleted === 1 || freshUser.status === 0) {
+            // Hapus sesi yang baru saja dibuat agar tidak bisa digunakan
+            await db.session.delete({ where: { id: data.session.id } }).catch(() => null);
+            throw new Error("ACCOUNT_DEACTIVATED");
+          }
+
+          // ── 2. Fix roleId admin jika login via Google ───────────────────
+          const adminEmailsStr = process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || "";
+          const adminEmails = adminEmailsStr.split(",").map((e: string) => e.trim().toLowerCase());
+          const userEmail = freshUser.email?.toLowerCase();
+
+          if (userEmail && adminEmails.includes(userEmail) && freshUser.roleId !== 1) {
             await db.user.update({
               where: { id: data.user.id },
               data: { roleId: 1 },
             });
             console.log("[auth] Admin roleId fixed for:", userEmail);
           }
-        } catch (err) {
+        } catch (err: any) {
+          if (err.message === "ACCOUNT_DEACTIVATED") throw err;
           console.error("[auth] session.created event error:", err);
         }
       },

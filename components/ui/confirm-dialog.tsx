@@ -1,10 +1,10 @@
 "use client";
 
 import React from "react";
-import { AlertTriangle, Trash2, ShieldOff, Loader2, X } from "lucide-react";
+import { AlertTriangle, Trash2, ShieldOff, Loader2, X, CheckCircle } from "lucide-react";
 
 // ── Types ────────────────────────────────────────────────────────────────────
-type ConfirmVariant = "danger" | "warning";
+type ConfirmVariant = "danger" | "warning" | "success";
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -33,6 +33,13 @@ const VARIANT_CONFIG = {
     icon: <ShieldOff className="w-6 h-6" />,
     btnClass: "bg-amber-500 hover:bg-amber-600 shadow-amber-100",
     defaultLabel: "Nonaktifkan",
+  },
+  success: {
+    iconBg: "bg-green-50",
+    iconColor: "text-green-500",
+    icon: <CheckCircle className="w-6 h-6" />,
+    btnClass: "bg-green-500 hover:bg-green-600 shadow-green-100",
+    defaultLabel: "Aktifkan",
   },
 };
 
