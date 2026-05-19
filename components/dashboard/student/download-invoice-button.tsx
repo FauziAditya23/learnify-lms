@@ -141,12 +141,15 @@ export default function DownloadInvoiceButton({ invoice }: { invoice: InvoiceDat
         }).format(amount);
       };
 
+      const basePrice = Math.round(invoice.amount / 1.11);
+      const ppnAmt = invoice.amount - basePrice;
+
       autoTable(doc, {
         startY: 102,
         margin: { left: 20, right: 20 },
         head: [["DESKRIPSI KURSUS", "INSTRUKTUR", "HARGA KURSUS"]],
         body: [
-          [invoice.courseName, invoice.instructorName, formatCurrency(invoice.amount)]
+          [invoice.courseName, invoice.instructorName, formatCurrency(basePrice)]
         ],
         theme: "plain",
         headStyles: {
@@ -192,15 +195,15 @@ export default function DownloadInvoiceButton({ invoice }: { invoice: InvoiceDat
       doc.setFontSize(9);
       doc.setTextColor(textColorLight[0], textColorLight[1], textColorLight[2]);
       doc.setFont("helvetica", "normal");
-      doc.text("Subtotal:", summaryX, finalY + 12);
+      doc.text("Harga Sebelum PPN:", summaryX, finalY + 12);
       doc.setTextColor(textColorDark[0], textColorDark[1], textColorDark[2]);
-      doc.text(formatCurrency(invoice.amount), pageWidth - 20, finalY + 12, { align: "right" });
+      doc.text(formatCurrency(basePrice), pageWidth - 20, finalY + 12, { align: "right" });
 
-      // Service charge
+      // PPN (11%)
       doc.setTextColor(textColorLight[0], textColorLight[1], textColorLight[2]);
-      doc.text("Biaya Layanan:", summaryX, finalY + 18);
+      doc.text("PPN (11%):", summaryX, finalY + 18);
       doc.setTextColor(textColorDark[0], textColorDark[1], textColorDark[2]);
-      doc.text("Rp 0", pageWidth - 20, finalY + 18, { align: "right" });
+      doc.text(formatCurrency(ppnAmt), pageWidth - 20, finalY + 18, { align: "right" });
 
       // Divider inside summary
       doc.setDrawColor(241, 245, 249); // slate-100
@@ -226,8 +229,8 @@ export default function DownloadInvoiceButton({ invoice }: { invoice: InvoiceDat
       const legalText = [
         "Kwitansi ini diterbitkan secara elektronik dan sah sebagai",
         "bukti pembayaran resmi keanggotaan kelas pada Learnify LMS.",
-        "Transaksi ini bebas dari PPN berdasarkan UU Perpajakan",
-        "Jasa Pendidikan di Republik Indonesia."
+        "Transaksi ini sudah termasuk PPN sebesar 11% sesuai dengan",
+        "ketentuan perundang-undangan perpajakan di Republik Indonesia."
       ];
       doc.text(legalText, noticeX, finalY + 21);
 

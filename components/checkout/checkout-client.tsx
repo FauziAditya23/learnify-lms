@@ -318,6 +318,16 @@ export default function CheckoutClient({ invoice }: Props) {
                       <span className="font-black">-{formatIDR(invoice.discountAmt!)}</span>
                     </div>
                   )}
+                  {(() => {
+                    const priceAfterDiscount = Math.round(Number(invoice.totalAmount) / 1.11);
+                    const ppnAmt = Number(invoice.totalAmount) - priceAfterDiscount;
+                    return (
+                      <div className="flex justify-between items-center text-slate-500">
+                        <span className="font-medium text-sm">PPN (11%)</span>
+                        <span className="font-bold">{formatIDR(ppnAmt)}</span>
+                      </div>
+                    );
+                  })()}
                   <div className="flex justify-between items-center pt-3 border-t border-slate-100">
                     <span className="font-black text-slate-800 text-lg">Total Tagihan</span>
                     <span className="font-black text-2xl text-[#FF6B4A]">{formatIDR(invoice.totalAmount)}</span>

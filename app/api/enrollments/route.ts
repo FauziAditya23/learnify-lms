@@ -184,13 +184,16 @@ export async function POST(request: Request) {
     const invoiceNumber = generateInvoiceNumber();
     const dueDate = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 jam
 
+    const ppnAmt = Math.round(finalPrice * 0.11);
+    const finalPriceWithPpn = finalPrice + ppnAmt;
+
     const [invoice] = await db.$transaction([
       db.invoice.create({
         data: {
           userId: session.user.id,
           courseId,              // ← fix: link invoice ke kursus
           invoiceNumber,
-          totalAmount: finalPrice,
+          totalAmount: finalPriceWithPpn,
           couponId: validCoupon?.id,
           discountAmt: discountAmt,
           invoiceStatus: "pending",
@@ -244,7 +247,7 @@ export async function POST(request: Request) {
       style: "currency",
       currency: "IDR",
       maximumFractionDigits: 0,
-    }).format(finalPrice);
+    }).format(finalPriceWithPpn);
 
     const checkoutUrl = `${process.env.NEXT_PUBLIC_APP_URL}/checkout/${invoice.invoiceNumber}`;
 
