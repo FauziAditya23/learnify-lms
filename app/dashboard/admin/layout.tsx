@@ -28,7 +28,7 @@ export default async function AdminLayout({
   });
 
   // Fetch pending payout count
-  const pendingPayoutCount = await (db as any).withdrawal.count({
+  const pendingPayoutCount = await db.withdrawal.count({
     where: { status: "pending", isDeleted: 0 },
   });
 
