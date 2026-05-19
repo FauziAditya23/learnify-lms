@@ -22,9 +22,9 @@ export default async function StudentLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-[#F8F9FB] font-sans text-[#1E1E1E]">
+    <div className="flex flex-col xl:flex-row min-h-screen bg-[#F8F9FB] font-sans text-[#1E1E1E]">
       <StudentSidebar userName={session.user.name} />
-      <div className="flex-1 flex flex-col min-h-screen overflow-x-hidden">
+      <div className="flex-1 flex flex-col min-h-screen overflow-x-hidden pb-16 xl:pb-0">
         {children}
       </div>
     </div>

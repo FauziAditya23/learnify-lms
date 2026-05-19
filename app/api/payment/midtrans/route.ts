@@ -82,6 +82,8 @@ export async function POST(request: Request) {
 
   const encodedKey = Buffer.from(`${serverKey}:`).toString("base64");
 
+  const midtransOrderId = `${invoiceNumber}-${Date.now()}`;
+
   // Buat Snap transaction ke Midtrans
   const midtransRes = await fetch(baseUrl, {
     method: "POST",
@@ -91,23 +93,20 @@ export async function POST(request: Request) {
     },
     body: JSON.stringify({
       transaction_details: {
-        order_id: invoiceNumber,
+        order_id: midtransOrderId,
         gross_amount: Number(invoice.totalAmount),
       },
       customer_details: {
         first_name: invoice.user.name,
         email: invoice.user.email,
       },
-      // Callbacks opsional jika ingin redirect otomatis oleh Midtrans
-      // Namun kita sudah handle via Snap JS di frontend (onSuccess, dll)
-      // Jadi dikosongkan agar tidak terjadi error iframe redirection
-      /*
+      // Override redirect URL agar setelah bayar user dikembalikan ke halaman web kita
+      // (Bukan ke example.com yang merupakan default bawaan Midtrans)
       callbacks: {
-        finish: `${process.env.BETTER_AUTH_URL}/checkout/${invoiceNumber}/success`,
-        error: `${process.env.BETTER_AUTH_URL}/checkout/${invoiceNumber}/failed`,
-        pending: `${process.env.BETTER_AUTH_URL}/checkout/${invoiceNumber}/pending`,
+        finish: `${process.env.BETTER_AUTH_URL}/checkout/${invoiceNumber}`,
+        error: `${process.env.BETTER_AUTH_URL}/checkout/${invoiceNumber}`,
+        pending: `${process.env.BETTER_AUTH_URL}/checkout/${invoiceNumber}`,
       },
-      */
     }),
   });
 

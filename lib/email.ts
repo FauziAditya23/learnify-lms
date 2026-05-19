@@ -339,3 +339,91 @@ export function paymentSuccessEmailTemplate(userName: string, courseName: string
 </html>
   `.trim();
 }
+
+// ── Instructor Course Sold Email Template ────────────────────────────────────
+export function instructorCourseSoldEmailTemplate(instructorName: string, courseName: string, studentName: string, amount: string): string {
+  return `
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kursus Terjual! — Learnify</title>
+</head>
+<body style="margin:0;padding:0;background:#F0F2F8;font-family:'Segoe UI',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#F0F2F8;padding:40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:24px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+          <tr>
+            <td style="background:#3B82F6;padding:32px 40px;text-align:center;">
+              <span style="color:white;font-size:22px;font-weight:800;letter-spacing:-0.5px;">Learnify<span style="color:#BFDBFE;">.</span></span>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:40px 40px 32px;">
+              <h1 style="margin:0 0 12px;font-size:24px;font-weight:800;color:#0F172A;">Hore! Kursus Kamu Terjual 🎉</h1>
+              <p style="margin:0 0 24px;font-size:15px;color:#64748B;line-height:1.6;">
+                Halo Instruktur <strong style="color:#0F172A;">${instructorName}</strong>, kabar gembira! Ada siswa baru yang membeli kursusmu.
+              </p>
+              <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:12px;padding:20px;margin-bottom:24px;">
+                <p style="margin:0 0 8px;font-size:13px;color:#1E3A8A;">Nama Siswa: <strong style="color:#1E3A8A;">${studentName}</strong></p>
+                <p style="margin:0 0 8px;font-size:13px;color:#1E3A8A;">Kursus: <strong style="color:#1E3A8A;">${courseName}</strong></p>
+                <p style="margin:0;font-size:13px;color:#1E3A8A;">Nilai Transaksi: <strong style="color:#3B82F6;font-size:16px;">${amount}</strong></p>
+              </div>
+              <p style="margin:0;font-size:12px;color:#94A3B8;line-height:1.6;">
+                Buka Dashboard Instruktur kamu untuk melihat statistik penjualan selengkapnya. Terus semangat membuat konten berkualitas!
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `.trim();
+}
+
+// ── Admin New Sale Email Template ────────────────────────────────────────────
+export function adminNewSaleEmailTemplate(courseName: string, studentName: string, amount: string, invoiceNumber: string): string {
+  return `
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Penjualan Baru (Admin) — Learnify</title>
+</head>
+<body style="margin:0;padding:0;background:#F0F2F8;font-family:'Segoe UI',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#F0F2F8;padding:40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:24px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+          <tr>
+            <td style="background:#6366F1;padding:32px 40px;text-align:center;">
+              <span style="color:white;font-size:22px;font-weight:800;letter-spacing:-0.5px;">Learnify Admin</span>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:40px 40px 32px;">
+              <h1 style="margin:0 0 12px;font-size:24px;font-weight:800;color:#0F172A;">Ada Transaksi Baru 💰</h1>
+              <p style="margin:0 0 24px;font-size:15px;color:#64748B;line-height:1.6;">
+                Sistem mendeteksi ada pembayaran sukses yang masuk ke Learnify.
+              </p>
+              <div style="background:#EEF2FF;border:1px solid #C7D2FE;border-radius:12px;padding:20px;margin-bottom:24px;">
+                <p style="margin:0 0 8px;font-size:13px;color:#3730A3;">No. Invoice: <strong style="color:#312E81;">${invoiceNumber}</strong></p>
+                <p style="margin:0 0 8px;font-size:13px;color:#3730A3;">Siswa: <strong style="color:#312E81;">${studentName}</strong></p>
+                <p style="margin:0 0 8px;font-size:13px;color:#3730A3;">Kursus: <strong style="color:#312E81;">${courseName}</strong></p>
+                <p style="margin:0;font-size:13px;color:#3730A3;">Nominal: <strong style="color:#4F46E5;font-size:16px;">${amount}</strong></p>
+              </div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `.trim();
+}

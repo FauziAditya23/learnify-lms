@@ -102,6 +102,7 @@ function getUrgencyStyle(totalMs: number) {
 // ── Main Component ─────────────────────────────────────────────────────────────
 export default function CheckoutClient({ invoice }: Props) {
   const router = useRouter();
+  const [isMounted, setIsMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<"idle" | "pending" | "success" | "failed" | "expired">(
     invoice.invoiceStatus === "paid" ? "success" :
@@ -117,6 +118,34 @@ export default function CheckoutClient({ invoice }: Props) {
       setPaymentStatus("expired");
     }
   }, [countdown.isExpired, paymentStatus]);
+
+  // ── Polling: Auto-detect Virtual Account payment completion ─────────────────
+  // Midtrans VA payments are async — user transfers externally, webhook updates DB.
+  // We poll every 5s while status is "pending" so UI updates without manual refresh.
+  useEffect(() => {
+    if (paymentStatus !== "pending") return;
+
+    const poll = async () => {
+      try {
+        const res = await fetch(`/api/payment/status?invoiceNumber=${invoice.invoiceNumber}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.status === "paid") {
+          setPaymentStatus("success");
+          toast.success("🎉 Pembayaran terkonfirmasi! Kamu sekarang bisa mulai belajar.");
+        } else if (data.status === "cancelled" || data.isExpired) {
+          setPaymentStatus("expired");
+        }
+      } catch {
+        // Silent fail — polling will retry on next interval
+      }
+    };
+
+    // Poll immediately once, then every 5 seconds
+    poll();
+    const interval = setInterval(poll, 5000);
+    return () => clearInterval(interval);
+  }, [paymentStatus, invoice.invoiceNumber]);
 
   // Inject Midtrans Snap.js
   const clientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY;
@@ -190,7 +219,7 @@ export default function CheckoutClient({ invoice }: Props) {
         onPending: (result) => {
           console.log("[Midtrans] Payment pending:", result);
           setPaymentStatus("pending");
-          toast.info("⏳ Pembayaran sedang diproses. Kamu akan mendapat konfirmasi via email.");
+          toast.info("⏳ Pembayaran sedang diproses. Halaman akan otomatis update setelah pembayaran dikonfirmasi.");
         },
         onError: (result) => {
           console.error("[Midtrans] Payment error:", result);
@@ -212,6 +241,12 @@ export default function CheckoutClient({ invoice }: Props) {
   const isExpired = paymentStatus === "expired" || countdown.isExpired;
   const isPaid = paymentStatus === "success";
   const canPay = !isExpired && !isPaid && invoice.invoiceStatus !== "cancelled";
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) return null;
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
@@ -395,6 +430,21 @@ export default function CheckoutClient({ invoice }: Props) {
                   <p className="font-black text-red-800">Pembayaran Gagal</p>
                   <p className="text-xs text-red-600 mt-0.5">Silakan coba lagi dengan metode lain.</p>
                 </div>
+              </div>
+            )}
+
+            {paymentStatus === "pending" && (
+              <div className="mb-6 bg-amber-50 border border-amber-200 rounded-3xl p-5 flex items-center gap-4">
+                <div className="w-12 h-12 bg-amber-400 rounded-2xl flex items-center justify-center shrink-0 animate-pulse">
+                  <Clock size={22} className="text-white" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-black text-amber-800">Menunggu Konfirmasi Pembayaran</p>
+                  <p className="text-xs text-amber-700 mt-0.5">
+                    Lakukan transfer Virtual Account, halaman ini akan otomatis update setelah pembayaran dikonfirmasi.
+                  </p>
+                </div>
+                <Loader2 size={20} className="text-amber-500 animate-spin shrink-0" />
               </div>
             )}
 

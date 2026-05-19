@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { sendEmail, paymentSuccessEmailTemplate } from "@/lib/email";
+import { 
+  sendEmail, 
+  paymentSuccessEmailTemplate,
+  instructorCourseSoldEmailTemplate,
+  adminNewSaleEmailTemplate 
+} from "@/lib/email";
 
 const COMPANY = "LEARNIFY";
 
@@ -42,10 +47,16 @@ export async function POST(request: Request) {
 
   if (
     transaction_status === "capture" ||
-    (transaction_status === "settlement" && fraud_status !== "challenge")
+    transaction_status === "settlement"
   ) {
-    invoiceStatus = "paid";
-    transactionStatus = "settlement";
+    if (fraud_status === "challenge") {
+      // Fraud review — tahan dulu, jangan aktifkan enrollment
+      invoiceStatus = "pending";
+      transactionStatus = "challenge";
+    } else {
+      invoiceStatus = "paid";
+      transactionStatus = "settlement";
+    }
   } else if (transaction_status === "pending") {
     invoiceStatus = "pending";
     transactionStatus = "pending";
@@ -62,18 +73,31 @@ export async function POST(request: Request) {
     transactionStatus = transaction_status;
   }
 
+  // Parse invoice number from order_id — format: INV-YYYYMMDD-XXXX[-timestamp]
+  // Regex lebih robust dibanding split
+  const invoiceMatch = order_id.match(/^(INV-\d{8}-[A-Z0-9]+)/);
+  const parsedInvoiceNumber = invoiceMatch ? invoiceMatch[1] : order_id;
+
   // 3. Ambil invoice
   const invoice = await db.invoice.findUnique({
-    where: { invoiceNumber: order_id },
+    where: { invoiceNumber: parsedInvoiceNumber },
     include: {
       user: true,
-      course: true,
+      course: {
+        include: { instructor: true }
+      },
     }
   });
 
   if (!invoice) {
     console.error("[Midtrans Webhook] Invoice tidak ditemukan:", order_id);
     return NextResponse.json({ error: "Invoice tidak ditemukan" }, { status: 404 });
+  }
+
+  // IDEMPOTENCY: Jika invoice sudah paid dan webhook ini juga paid, skip processing
+  if (invoice.invoiceStatus === "paid" && invoiceStatus === "paid") {
+    console.log("[Midtrans Webhook] Invoice already paid, skipping duplicate:", parsedInvoiceNumber);
+    return NextResponse.json({ status: "already_processed" });
   }
 
   // 4. Upsert transaction record
@@ -150,6 +174,7 @@ export async function POST(request: Request) {
 
       const courseUrl = `${process.env.NEXT_PUBLIC_APP_URL}/courses/${invoice.course.slug}/learn`;
 
+      // 1. Notifikasi Email ke Siswa
       sendEmail({
         to: invoice.user.email,
         subject: `Pembayaran Berhasil: ${invoice.course.title}`,
@@ -161,6 +186,37 @@ export async function POST(request: Request) {
           courseUrl
         )
       }).catch(err => console.error("Failed to send payment success email:", err));
+
+      // 2. Notifikasi Email ke Instruktur
+      if (invoice.course.instructor?.email) {
+        sendEmail({
+          to: invoice.course.instructor.email,
+          subject: `Hore! Kursus ${invoice.course.title} Terjual 🎉`,
+          html: instructorCourseSoldEmailTemplate(
+            invoice.course.instructor.name,
+            invoice.course.title,
+            invoice.user.name,
+            fmtAmount
+          )
+        }).catch(err => console.error("Failed to send instructor email:", err));
+      }
+
+      // 3. Notifikasi Email ke Admin
+      const adminEmail = process.env.ADMIN_EMAIL;
+      if (adminEmail) {
+        sendEmail({
+          to: adminEmail,
+          subject: `Penjualan Baru: ${invoice.course.title} 💰`,
+          html: adminNewSaleEmailTemplate(
+            invoice.course.title,
+            invoice.user.name,
+            fmtAmount,
+            invoice.invoiceNumber
+          )
+        }).catch(err => console.error("Failed to send admin email:", err));
+      } else {
+        console.warn("[Midtrans Webhook] ADMIN_EMAIL tidak diset di .env — notifikasi admin dilewati.");
+      }
     }
   }
 

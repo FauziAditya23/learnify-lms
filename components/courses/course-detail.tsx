@@ -238,6 +238,7 @@ export default function CourseDetailClient({ course }: { course: CourseDetail })
   const buttonState = (() => {
     if (sessionLoading || statusLoading) return { label: "Memuat...", disabled: true };
     if (enrollmentStatus.isEnrolled) return { label: "🎓 Lanjut Belajar", disabled: false };
+    if ((enrollmentStatus as any).isPendingPayment) return { label: "⏳ Lanjutkan Pembayaran", disabled: false };
     if (isEnrolling) return { label: "Mendaftar...", disabled: true };
     if (course.price === 0 || (discountPercent > 0 && Number(course.price) * (1 - discountPercent / 100) <= 0)) return { label: "🎉 Daftar Gratis Sekarang", disabled: false };
     const finalPrice = discountPercent > 0 ? Number(course.price) * (1 - discountPercent / 100) : course.price;
@@ -546,6 +547,8 @@ export default function CourseDetailClient({ course }: { course: CourseDetail })
               <Loader2 size={20} className="animate-spin" />
             ) : enrollmentStatus.isEnrolled ? (
               <><GraduationCap size={18} /> Lanjut Belajar</>
+            ) : (enrollmentStatus as any).isPendingPayment ? (
+              <>⏳ Lanjutkan Pembayaran <ChevronRight size={18} /></>
             ) : (
               <>{course.price === 0 ? "Daftar Gratis" : "Enroll Sekarang"} <ChevronRight size={18} /></>
             )}

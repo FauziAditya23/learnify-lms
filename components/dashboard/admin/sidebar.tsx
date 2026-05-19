@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -16,6 +16,8 @@ import {
   Banknote,
   Tag,
   Medal,
+  Menu,
+  X,
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -36,7 +38,7 @@ const NAV_ITEMS = [
     name: "Course Approvals",
     href: "/dashboard/admin/courses/approvals",
     icon: ShieldCheck,
-    badge: "pending", // key to inject pendingCount
+    badge: "pending",
   },
   {
     name: "Manage Students",
@@ -88,6 +90,9 @@ const NAV_ITEMS = [
   },
 ] as const;
 
+// Show first 5 items on mobile bottom nav
+const BOTTOM_NAV_ITEMS = NAV_ITEMS.slice(0, 5);
+
 export default function AdminSidebar({
   userName,
   pendingCount = 0,
@@ -95,26 +100,37 @@ export default function AdminSidebar({
   onEnable2FA,
 }: AdminSidebarProps) {
   const pathname = usePathname();
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const handleLogout = () => {
     window.location.href = "/api/auth/sign-out";
   };
 
-  return (
-    <aside className="w-[280px] bg-white hidden xl:flex flex-col sticky top-0 h-screen border-r border-orange-50">
+  const SidebarContent = ({ onClose }: { onClose?: () => void }) => (
+    <>
       {/* Logo */}
-      <div className="p-6 flex items-center gap-3">
-        <div className="w-9 h-9 bg-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-orange-200">
-          <ShieldCheck size={20} className="text-white" />
+      <div className="p-6 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 bg-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-orange-200">
+            <ShieldCheck size={20} className="text-white" />
+          </div>
+          <div>
+            <span className="text-xl font-black tracking-tighter block text-[#2D2D2D]">
+              Learnify.
+            </span>
+            <span className="text-[10px] font-bold text-orange-600 tracking-[1.5px] uppercase leading-none">
+              Super Admin
+            </span>
+          </div>
         </div>
-        <div>
-          <span className="text-xl font-black tracking-tighter block text-[#2D2D2D]">
-            Learnify.
-          </span>
-          <span className="text-[10px] font-bold text-orange-600 tracking-[1.5px] uppercase leading-none">
-            Super Admin
-          </span>
-        </div>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="p-2 rounded-xl text-slate-300 hover:bg-slate-100 hover:text-slate-600 transition-colors xl:hidden"
+          >
+            <X size={20} />
+          </button>
+        )}
       </div>
 
       {/* Navigation */}
@@ -125,17 +141,18 @@ export default function AdminSidebar({
 
         {NAV_ITEMS.map((item) => {
           const isActive = pathname === item.href;
-          
+
           let count = 0;
           if (item.badge === "pending") count = pendingCount;
           if (item.badge === "payout") count = pendingPayoutCount;
-          
+
           const showBadge = count > 0;
 
           return (
             <Link
               key={item.href}
               href={item.href}
+              onClick={onClose}
               className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold text-[13px] transition-all ${
                 isActive
                   ? "bg-orange-50 text-orange-600"
@@ -190,6 +207,90 @@ export default function AdminSidebar({
           <LogOut size={16} /> Sign Out Panel
         </button>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* ===== DESKTOP SIDEBAR ===== */}
+      <aside className="w-[280px] bg-white hidden xl:flex flex-col sticky top-0 h-screen border-r border-orange-50">
+        <SidebarContent />
+      </aside>
+
+      {/* ===== MOBILE TOP BAR ===== */}
+      <div className="xl:hidden sticky top-0 z-50 bg-white border-b border-orange-50 flex items-center justify-between px-4 h-14">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 bg-orange-500 rounded-xl flex items-center justify-center shadow-md shadow-orange-200">
+            <ShieldCheck size={16} className="text-white" />
+          </div>
+          <span className="text-base font-black tracking-tighter text-[#2D2D2D]">
+            Learnify. <span className="text-[9px] text-orange-500 font-bold uppercase tracking-widest">Admin</span>
+          </span>
+        </div>
+        <button
+          onClick={() => setDrawerOpen(true)}
+          className="p-2 rounded-xl text-slate-500 hover:bg-orange-50 transition-colors"
+          aria-label="Open navigation"
+        >
+          <Menu size={20} />
+        </button>
+      </div>
+
+      {/* ===== MOBILE DRAWER OVERLAY ===== */}
+      {drawerOpen && (
+        <div
+          className="xl:hidden fixed inset-0 z-[200] bg-black/40 backdrop-blur-sm"
+          onClick={() => setDrawerOpen(false)}
+        />
+      )}
+
+      {/* ===== MOBILE DRAWER ===== */}
+      <aside
+        className={`xl:hidden fixed top-0 left-0 z-[201] h-full w-[85vw] max-w-[300px] bg-white shadow-2xl flex flex-col transition-transform duration-300 ease-in-out ${
+          drawerOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <SidebarContent onClose={() => setDrawerOpen(false)} />
+      </aside>
+
+      {/* ===== MOBILE BOTTOM NAV ===== */}
+      <nav className="xl:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-orange-50 flex items-center justify-around px-2 h-16 shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
+        {BOTTOM_NAV_ITEMS.map((item) => {
+          const isActive = pathname === item.href;
+          let count = 0;
+          if (item.badge === "pending") count = pendingCount;
+          if (item.badge === "payout") count = pendingPayoutCount;
+          const showBadge = count > 0;
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`flex flex-col items-center gap-0.5 relative min-w-[40px] py-1.5 px-2 rounded-xl transition-all ${
+                isActive ? "text-orange-600" : "text-slate-300 hover:text-orange-500"
+              }`}
+            >
+              <item.icon size={20} />
+              <span className="text-[9px] font-bold leading-none truncate">{item.name.split(" ")[0]}</span>
+              {showBadge && (
+                <span className="absolute top-0.5 right-0.5 min-w-[14px] h-[14px] bg-orange-500 text-white text-[8px] font-black rounded-full flex items-center justify-center">
+                  {count > 9 ? "9+" : count}
+                </span>
+              )}
+              {isActive && (
+                <span className="absolute -top-px left-1/2 -translate-x-1/2 w-6 h-[3px] bg-orange-500 rounded-b-full" />
+              )}
+            </Link>
+          );
+        })}
+        <button
+          onClick={() => setDrawerOpen(true)}
+          className="flex flex-col items-center gap-0.5 min-w-[40px] py-1.5 px-2 rounded-xl text-slate-300 hover:text-orange-500 transition-all"
+        >
+          <Menu size={20} />
+          <span className="text-[9px] font-bold leading-none">More</span>
+        </button>
+      </nav>
+    </>
   );
 }

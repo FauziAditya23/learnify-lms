@@ -65,7 +65,7 @@ export default function AdminLayoutContent({
   };
 
   return (
-    <div className="flex min-h-screen bg-[#FFFBF9] font-sans text-[#2D2D2D]">
+    <div className="flex flex-col xl:flex-row min-h-screen bg-[#FFFBF9] font-sans text-[#2D2D2D]">
       <AdminSidebar 
         userName={userName} 
         pendingCount={pendingCount} 
@@ -73,7 +73,7 @@ export default function AdminLayoutContent({
         onEnable2FA={handleEnable2FA} 
       />
       
-      <div className="flex-1 flex flex-col min-h-screen overflow-x-hidden">
+      <div className="flex-1 flex flex-col min-h-screen overflow-x-hidden pb-16 xl:pb-0">
         {children}
       </div>
 

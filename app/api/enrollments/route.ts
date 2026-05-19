@@ -95,12 +95,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Kursus tidak ditemukan" }, { status: 404 });
   }
 
-  // 2. Cek sudah enroll belum
+  // 2. Cek sudah enroll belum (hanya blokir jika statusnya aktif)
   const existing = await db.enrollment.findFirst({
     where: {
       userId: session.user.id,
       courseId,
       isDeleted: 0,
+      enrollmentStatus: "active",
     },
   });
 
@@ -141,8 +142,19 @@ export async function POST(request: Request) {
 
   if (isFree) {
     // ── FREE: Langsung buat enrollment ──────────────────────────────────
-    const enrollment = await db.enrollment.create({
-      data: {
+    const enrollment = await db.enrollment.upsert({
+      where: {
+        userId_courseId: { userId: session.user.id, courseId }
+      },
+      update: {
+        enrollmentStatus: "active",
+        enrolledAt: new Date(),
+        status: 1,
+        isDeleted: 0,
+        lastUpdatedBy: session.user.id,
+        lastUpdatedDate: new Date(),
+      },
+      create: {
         userId: session.user.id,
         courseId,
         enrollmentStatus: "active",
@@ -194,8 +206,18 @@ export async function POST(request: Request) {
       }),
       // Buat enrollment dengan status pending_payment
       // Akan diupdate ke "active" oleh webhook Midtrans setelah pembayaran berhasil
-      db.enrollment.create({
-        data: {
+      db.enrollment.upsert({
+        where: {
+          userId_courseId: { userId: session.user.id, courseId }
+        },
+        update: {
+          enrollmentStatus: "pending_payment",
+          status: 1,
+          isDeleted: 0,
+          lastUpdatedBy: session.user.id,
+          lastUpdatedDate: new Date(),
+        },
+        create: {
           userId: session.user.id,
           courseId,
           enrollmentStatus: "pending_payment",
