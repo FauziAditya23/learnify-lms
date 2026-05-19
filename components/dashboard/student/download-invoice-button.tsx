@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Download, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import jsPDF from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
 import { toast } from "sonner";
 
 interface InvoiceData {
@@ -68,7 +68,7 @@ export default function DownloadInvoiceButton({ invoice }: { invoice: InvoiceDat
         }).format(amount);
       };
 
-      (doc as any).autoTable({
+      autoTable(doc, {
         startY: 100,
         head: [["Nama Kursus", "Instruktur", "Harga"]],
         body: [
@@ -83,7 +83,7 @@ export default function DownloadInvoiceButton({ invoice }: { invoice: InvoiceDat
       });
 
       // 5. Total
-      const finalY = (doc as any).lastAutoTable.finalY || 120;
+      const finalY = (doc as any).lastAutoTable?.finalY || 120;
       doc.setFontSize(12);
       doc.setFont("helvetica", "bold");
       doc.text("TOTAL LUNAS", pageWidth - 80, finalY + 15);
