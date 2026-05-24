@@ -180,7 +180,7 @@ const RegisterPage = () => {
 
           <div className="flex items-center gap-4 mb-8 opacity-70">
             <div className="h-[1px] bg-slate-200 flex-1" />
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Atau gunakan email</span>
+            <span className="text-[10px] font-bold text-slate-500 font-medium uppercase tracking-widest">Atau gunakan email</span>
             <div className="h-[1px] bg-slate-200 flex-1" />
           </div>
 
@@ -215,7 +215,7 @@ const RegisterPage = () => {
                 Nama Lengkap
               </label>
               <div className="relative group">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-colors" />
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 font-medium group-focus-within:text-primary transition-colors" />
                 <input
                   type="text"
                   value={fullName}
@@ -233,7 +233,7 @@ const RegisterPage = () => {
                 Alamat Email
               </label>
               <div className="relative group">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-colors" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 font-medium group-focus-within:text-primary transition-colors" />
                 <input
                   type="email"
                   value={email}
@@ -251,7 +251,7 @@ const RegisterPage = () => {
                 Password
               </label>
               <div className="relative group">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-colors" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 font-medium group-focus-within:text-primary transition-colors" />
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
@@ -264,7 +264,7 @@ const RegisterPage = () => {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-slate-500 font-medium hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>

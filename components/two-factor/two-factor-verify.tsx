@@ -22,6 +22,13 @@ const TwoFactorVerifyPage = () => {
   const [info, setInfo] = useState<string | null>(null);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
+  // Auto submit Email OTP
+  useEffect(() => {
+    if (mode === "email-otp" && emailOtp.length === 6) {
+      handleVerifyEmailOtp({ preventDefault: () => {} } as React.FormEvent);
+    }
+  }, [emailOtp, mode]);
+
   // Auto-focus digit pertama saat mount atau ganti mode
   useEffect(() => {
     if (mode === "totp") {
@@ -196,7 +203,7 @@ const TwoFactorVerifyPage = () => {
       
       {/* Tombol Close */}
       <Link href="/auth/login" className="absolute top-6 right-6 p-2.5 hover:bg-slate-100 rounded-full z-20 group transition-all">
-        <X className="w-5 h-5 text-slate-400 group-hover:text-slate-700" />
+        <X className="w-5 h-5 text-slate-500 font-medium group-hover:text-slate-700" />
       </Link>
 
       {/* --- LEFT SIDE: Spatial Glass Environment --- */}
@@ -256,7 +263,7 @@ const TwoFactorVerifyPage = () => {
               </div>
 
               {error && (
-                <div className="mb-4 flex items-center gap-3 bg-red-50 border border-red-100 text-red-600 rounded-xl px-4 py-3 text-sm font-medium">
+                <div className="mb-4 flex items-center gap-3 bg-red-50 border border-red-100 text-red-600 rounded-xl px-4 py-3 text-sm font-medium animate-shake">
                   <AlertCircle className="w-4 h-4 flex-shrink-0" />
                   {error}
                 </div>
@@ -286,25 +293,29 @@ const TwoFactorVerifyPage = () => {
               <button
                 onClick={() => handleVerifyTotp()}
                 disabled={isLoading || code.some((d) => !d)}
-                className="w-full h-12 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white rounded-xl font-bold transition-all shadow-lg shadow-primary/30 flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed mb-4"
+                className="hidden"
               >
-                {isLoading
-                  ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  : <><ShieldCheck className="w-4 h-4" />Verifikasi &amp; Masuk</>}
               </button>
+              {isLoading && (
+                <div className="flex flex-col items-center justify-center mb-4 text-primary animate-pulse">
+                   <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin mb-2" />
+                   <span className="text-xs font-bold">Memverifikasi...</span>
+                </div>
+              )}
+
 
               {/* Opsi lain */}
               <div className="flex flex-col gap-2 items-center">
                 <button
                   onClick={() => switchMode("email-otp")}
-                  className="flex items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-primary transition-colors"
+                  className="flex items-center gap-1.5 text-xs font-medium text-slate-500 font-medium hover:text-primary transition-colors"
                 >
                   <Mail className="w-3.5 h-3.5" />
                   Gunakan kode via Email sebagai gantinya
                 </button>
                 <button
                   onClick={() => switchMode("backup")}
-                  className="text-xs font-medium text-slate-400 hover:text-primary transition-colors"
+                  className="text-xs font-medium text-slate-500 font-medium hover:text-primary transition-colors"
                 >
                   Tidak bisa akses Authenticator? Gunakan backup code
                 </button>
@@ -317,7 +328,7 @@ const TwoFactorVerifyPage = () => {
             <>
               <button
                 onClick={() => switchMode("totp")}
-                className="inline-flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-primary transition-colors mb-6 group w-fit"
+                className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 font-medium hover:text-primary transition-colors mb-6 group w-fit"
               >
                 <RotateCw className="w-3.5 h-3.5" />
                 Kembali ke Authenticator App
@@ -331,7 +342,7 @@ const TwoFactorVerifyPage = () => {
               </div>
 
               {error && (
-                <div className="mb-4 flex items-center gap-3 bg-red-50 border border-red-100 text-red-600 rounded-xl px-4 py-3 text-sm font-medium">
+                <div className="mb-4 flex items-center gap-3 bg-red-50 border border-red-100 text-red-600 rounded-xl px-4 py-3 text-sm font-medium animate-shake">
                   <AlertCircle className="w-4 h-4 flex-shrink-0" />
                   {error}
                 </div>
@@ -374,20 +385,21 @@ const TwoFactorVerifyPage = () => {
                     />
                   </div>
 
-                  <button
-                    type="submit"
-                    disabled={isLoading || emailOtp.length !== 6}
-                    className="w-full h-12 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white rounded-xl font-bold transition-all shadow-lg shadow-primary/30 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isLoading
-                      ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      : <><ShieldCheck className="w-4 h-4" />Verifikasi &amp; Masuk</>}
-                  </button>
+                  
+                  {/* Hiding button to encourage auto-submit flow. We just add a loading indicator when processing. */}
+                  <button type="submit" className="hidden" />
+                  {isLoading && (
+                    <div className="flex flex-col items-center justify-center py-2 text-primary animate-pulse">
+                       <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin mb-2" />
+                       <span className="text-xs font-bold">Memverifikasi...</span>
+                    </div>
+                  )}
+
 
                   {/* Resend */}
                   <div className="text-center">
                     {countdown > 0 ? (
-                      <p className="text-xs text-slate-400">Kirim ulang dalam <span className="font-bold text-slate-600">{countdown}s</span></p>
+                      <p className="text-xs text-slate-500 font-medium">Kirim ulang dalam <span className="font-bold text-slate-600">{countdown}s</span></p>
                     ) : (
                       <button
                         type="button"
@@ -409,7 +421,7 @@ const TwoFactorVerifyPage = () => {
             <>
               <button
                 onClick={() => switchMode("totp")}
-                className="inline-flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-primary transition-colors mb-6 group w-fit"
+                className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 font-medium hover:text-primary transition-colors mb-6 group w-fit"
               >
                 <RotateCw className="w-4 h-4" />
                 Kembali ke kode Authenticator
@@ -423,7 +435,7 @@ const TwoFactorVerifyPage = () => {
               </div>
 
               {error && (
-                <div className="mb-4 flex items-center gap-3 bg-red-50 border border-red-100 text-red-600 rounded-xl px-4 py-3 text-sm font-medium">
+                <div className="mb-4 flex items-center gap-3 bg-red-50 border border-red-100 text-red-600 rounded-xl px-4 py-3 text-sm font-medium animate-shake">
                   <AlertCircle className="w-4 h-4 flex-shrink-0" />
                   {error}
                 </div>

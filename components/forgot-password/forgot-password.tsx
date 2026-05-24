@@ -50,7 +50,7 @@ const ForgotPasswordPage = () => {
         href="/auth/login"
         className="absolute top-6 right-6 p-2.5 hover:bg-slate-100 rounded-full transition-all duration-300 z-20 group"
       >
-        <X className="w-5 h-5 text-slate-400 group-hover:text-slate-700" />
+        <X className="w-5 h-5 text-slate-500 font-medium group-hover:text-slate-700" />
       </Link>
 
       {/* --- LEFT SIDE: Spatial Glass Environment --- */}
@@ -90,7 +90,7 @@ const ForgotPasswordPage = () => {
           {/* Back to Login */}
           <Link
             href="/auth/login"
-            className="inline-flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-primary transition-colors mb-8 group w-fit"
+            className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 font-medium hover:text-primary transition-colors mb-8 group w-fit"
           >
             <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
             Kembali ke Login
@@ -107,7 +107,7 @@ const ForgotPasswordPage = () => {
 
               {/* Error Message */}
               {(state === "error" || errorMsg) && (
-                <div className="mb-5 flex items-center gap-3 bg-red-50 border border-red-100 text-red-600 rounded-xl px-4 py-3 text-sm font-medium">
+                <div className="mb-5 flex items-center gap-3 bg-red-50 border border-red-100 text-red-600 rounded-xl px-4 py-3 text-sm font-medium animate-shake">
                   <AlertCircle className="w-4 h-4 flex-shrink-0" />
                   {errorMsg || "Terjadi kesalahan. Silakan coba lagi."}
                 </div>
@@ -119,7 +119,7 @@ const ForgotPasswordPage = () => {
                     Alamat Email Terdaftar
                   </label>
                   <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary" />
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 font-medium group-focus-within:text-primary" />
                     <input
                       type="email"
                       value={email}
@@ -148,7 +148,7 @@ const ForgotPasswordPage = () => {
                 </button>
               </form>
 
-              <p className="text-center text-xs font-medium text-slate-400 mt-8">
+              <p className="text-center text-xs font-medium text-slate-500 font-medium mt-8">
                 Ingat password kamu?{" "}
                 <Link href="/auth/login" className="text-primary font-bold hover:underline">
                   Masuk Sekarang
@@ -184,7 +184,7 @@ const ForgotPasswordPage = () => {
                 ))}
               </div>
 
-              <p className="text-xs text-slate-400 mb-4">
+              <p className="text-xs text-slate-500 font-medium mb-4">
                 Tidak menerima email? Cek folder Spam atau junk mail.
               </p>
 

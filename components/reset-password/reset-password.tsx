@@ -93,7 +93,7 @@ const ResetPasswordPage = () => {
         href="/auth/login"
         className="absolute top-6 right-6 p-2.5 hover:bg-slate-100 rounded-full transition-all duration-300 z-20 group"
       >
-        <X className="w-5 h-5 text-slate-400 group-hover:text-slate-700" />
+        <X className="w-5 h-5 text-slate-500 font-medium group-hover:text-slate-700" />
       </Link>
 
       {/* --- LEFT SIDE: Spatial Glass Environment --- */}
@@ -146,7 +146,7 @@ const ResetPasswordPage = () => {
               >
                 Minta Link Reset Baru
               </Link>
-              <Link href="/auth/login" className="text-xs font-medium text-slate-400 hover:text-slate-600 mt-4">
+              <Link href="/auth/login" className="text-xs font-medium text-slate-500 font-medium hover:text-slate-600 mt-4">
                 Kembali ke Login
               </Link>
             </div>
@@ -184,7 +184,7 @@ const ResetPasswordPage = () => {
 
               {/* Error */}
               {errorMsg && (
-                <div className="mb-4 flex items-center gap-3 bg-red-50 border border-red-100 text-red-600 rounded-xl px-4 py-3 text-sm font-medium">
+                <div className="mb-4 flex items-center gap-3 bg-red-50 border border-red-100 text-red-600 rounded-xl px-4 py-3 text-sm font-medium animate-shake">
                   <AlertCircle className="w-4 h-4 flex-shrink-0" />
                   {errorMsg}
                 </div>
@@ -197,7 +197,7 @@ const ResetPasswordPage = () => {
                     Password Baru
                   </label>
                   <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary" />
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 font-medium group-focus-within:text-primary" />
                     <input
                       type={showPassword ? "text" : "password"}
                       value={password}
@@ -210,7 +210,7 @@ const ResetPasswordPage = () => {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-slate-500 font-medium hover:text-slate-600"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -234,7 +234,7 @@ const ResetPasswordPage = () => {
                       </p>
                       <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 mt-1">
                         {rules.map((rule) => (
-                          <p key={rule.label} className={`text-[10px] flex items-center gap-1 ${rule.test(password) ? "text-green-600" : "text-slate-400"}`}>
+                          <p key={rule.label} className={`text-[10px] flex items-center gap-1 transition-colors duration-500 ${rule.test(password) ? "text-green-600 line-through opacity-70" : "text-slate-500 font-medium"}`}>
                             <span>{rule.test(password) ? "✓" : "○"}</span> {rule.label}
                           </p>
                         ))}
@@ -249,7 +249,7 @@ const ResetPasswordPage = () => {
                     Konfirmasi Password
                   </label>
                   <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary" />
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 font-medium group-focus-within:text-primary" />
                     <input
                       type={showConfirm ? "text" : "password"}
                       value={confirmPassword}
@@ -268,7 +268,7 @@ const ResetPasswordPage = () => {
                     <button
                       type="button"
                       onClick={() => setShowConfirm(!showConfirm)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-slate-500 font-medium hover:text-slate-600"
                     >
                       {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
