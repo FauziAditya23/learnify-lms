@@ -16,21 +16,34 @@ export async function GET(req: NextRequest) {
     }
 
     const { searchParams } = new URL(req.url);
-    const status = searchParams.get("status"); // pending | paid | failed | expired | all
+    const status = searchParams.get("status"); // pending | paid | failed | expired | cancelled | all
     const search = searchParams.get("search") ?? "";
-    const page = parseInt(searchParams.get("page") ?? "1");
-    const limit = parseInt(searchParams.get("limit") ?? "20");
+    const page = Math.max(1, parseInt(searchParams.get("page") ?? "1"));
+    const limit = Math.min(50, parseInt(searchParams.get("limit") ?? "15"));
     const skip = (page - 1) * limit;
 
+    // ── Build WHERE clause di sisi database (bukan in-memory) ──────────────
     const whereInvoice: any = {
       isDeleted: 0,
+      status: 1, // hanya invoice aktif
     };
 
+    // Filter status invoice
     if (status && status !== "all") {
       whereInvoice.invoiceStatus = status;
     }
 
-    // Fetch invoices with nested relations
+    // Search: filter di level DB agar pagination akurat
+    if (search.trim()) {
+      whereInvoice.OR = [
+        { invoiceNumber: { contains: search, mode: "insensitive" } },
+        { user: { name: { contains: search, mode: "insensitive" } } },
+        { user: { email: { contains: search, mode: "insensitive" } } },
+        { course: { title: { contains: search, mode: "insensitive" } } },
+      ];
+    }
+
+    // ── Fetch data + total count dengan where yang sama ───────────────────
     const [invoices, total] = await Promise.all([
       db.invoice.findMany({
         where: whereInvoice,
@@ -54,7 +67,8 @@ export async function GET(req: NextRequest) {
             },
           },
           transactions: {
-            orderBy: { createdDate: "desc" },
+            where: { isDeleted: 0 }, // hanya transaksi aktif
+            orderBy: { transactionTime: "desc" },
             take: 1,
             select: {
               id: true,
@@ -73,29 +87,19 @@ export async function GET(req: NextRequest) {
         skip,
         take: limit,
       }),
-      db.invoice.count({ where: whereInvoice }),
+      db.invoice.count({ where: whereInvoice }), // count pakai where yang sama!
     ]);
 
-    // Apply search filter on name/email/invoiceNumber (in-memory after DB fetch for simplicity)
-    const filtered = search
-      ? invoices.filter(
-          (inv) =>
-            inv.user.name.toLowerCase().includes(search.toLowerCase()) ||
-            inv.user.email.toLowerCase().includes(search.toLowerCase()) ||
-            inv.invoiceNumber.toLowerCase().includes(search.toLowerCase()) ||
-            (inv.course?.title ?? "").toLowerCase().includes(search.toLowerCase())
-        )
-      : invoices;
-
-    // Summary stats
+    // ── Summary stats (selalu dari semua invoice aktif, bukan difilter search) ──
     const stats = await db.invoice.groupBy({
       by: ["invoiceStatus"],
-      where: { isDeleted: 0 },
+      where: { isDeleted: 0, status: 1 },
       _count: { id: true },
       _sum: { totalAmount: true },
     });
 
-    const formatted = filtered.map((inv) => ({
+    // ── Serialize data ─────────────────────────────────────────────────────
+    const formatted = invoices.map((inv) => ({
       id: inv.id,
       invoiceNumber: inv.invoiceNumber,
       invoiceStatus: inv.invoiceStatus,
@@ -135,6 +139,7 @@ export async function GET(req: NextRequest) {
       total,
       page,
       limit,
+      totalPages: Math.ceil(total / limit),
       stats: stats.map((s) => ({
         status: s.invoiceStatus,
         count: s._count.id,
@@ -147,20 +152,27 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// PATCH: manually update invoice status
+// ── PATCH: update status invoice secara manual ────────────────────────────────
 export async function PATCH(req: NextRequest) {
   try {
     const session = await auth.api.getSession({ headers: await headers() });
-    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     const roleId = (session.user as any).roleId;
-    if (roleId !== 1) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (roleId !== 1) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     const body = await req.json();
     const { invoiceId, newStatus } = body;
 
     if (!invoiceId || !newStatus) {
-      return NextResponse.json({ error: "invoiceId dan newStatus wajib diisi" }, { status: 400 });
+      return NextResponse.json(
+        { error: "invoiceId dan newStatus wajib diisi" },
+        { status: 400 }
+      );
     }
 
     const allowed = ["pending", "paid", "failed", "expired", "cancelled"];
@@ -168,32 +180,58 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Status tidak valid" }, { status: 400 });
     }
 
+    // Cek invoice dulu — pastikan ada dan tidak terhapus
+    const invoice = await db.invoice.findFirst({
+      where: { id: Number(invoiceId), isDeleted: 0 },
+      select: { id: true, userId: true, courseId: true, invoiceStatus: true },
+    });
+
+    if (!invoice) {
+      return NextResponse.json({ error: "Invoice tidak ditemukan" }, { status: 404 });
+    }
+
+    // Update status invoice
     const updated = await db.invoice.update({
-      where: { id: invoiceId },
+      where: { id: invoice.id },
       data: {
         invoiceStatus: newStatus,
-        lastUpdatedBy: session.user.name,
+        lastUpdatedBy: session.user.name ?? "ADMIN",
       },
     });
 
-    // If marking as paid, also create enrollment if not exists
-    if (newStatus === "paid" && updated.courseId && updated.userId) {
+    // Jika diubah jadi "paid", buat enrollment jika belum ada
+    if (newStatus === "paid" && invoice.courseId != null) {
       await db.enrollment.upsert({
-        where: { userId_courseId: { userId: updated.userId, courseId: updated.courseId } },
+        where: {
+          userId_courseId: {
+            userId: invoice.userId,
+            courseId: invoice.courseId,
+          },
+        },
         create: {
-          userId: updated.userId,
-          courseId: updated.courseId,
+          userId: invoice.userId,
+          courseId: invoice.courseId,
           enrollmentStatus: "active",
-          createdBy: session.user.name,
+          createdBy: session.user.name ?? "ADMIN",
         },
         update: {
           enrollmentStatus: "active",
-          lastUpdatedBy: session.user.name,
+          isDeleted: 0,
+          status: 1,
+          lastUpdatedBy: session.user.name ?? "ADMIN",
         },
       });
     }
 
-    return NextResponse.json({ success: true, invoice: updated });
+    return NextResponse.json({
+      success: true,
+      message: `Status invoice berhasil diubah ke "${newStatus}"`,
+      invoice: {
+        id: updated.id,
+        invoiceNumber: updated.invoiceNumber,
+        invoiceStatus: updated.invoiceStatus,
+      },
+    });
   } catch (error: any) {
     console.error("[PATCH /api/admin/payments]", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
