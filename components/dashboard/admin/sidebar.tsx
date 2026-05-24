@@ -18,6 +18,7 @@ import {
   Medal,
   Menu,
   X,
+  CreditCard,
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -86,6 +87,12 @@ const NAV_ITEMS = [
     name: "System Badges",
     href: "/dashboard/admin/badges",
     icon: Medal,
+    badge: null,
+  },
+  {
+    name: "Payment Status",
+    href: "/dashboard/admin/payments",
+    icon: CreditCard,
     badge: null,
   },
 ] as const;
