@@ -192,51 +192,57 @@ const TwoFactorVerifyPage = () => {
   };
 
   return (
-    <div className="h-screen w-full bg-slate-50 flex items-center justify-center p-4 font-sans">
-      <div className="bg-white rounded-[32px] overflow-hidden shadow-2xl shadow-slate-200 w-full max-w-[1100px] flex flex-col md:flex-row h-full max-h-[640px] relative animate-in fade-in duration-700 slide-in-from-bottom-5">
+    <div className="h-screen w-full flex bg-slate-50 font-sans overflow-hidden selection:bg-primary/20">
+      
+      {/* Tombol Close */}
+      <Link href="/auth/login" className="absolute top-6 right-6 p-2.5 hover:bg-slate-100 rounded-full z-20 group transition-all">
+        <X className="w-5 h-5 text-slate-400 group-hover:text-slate-700" />
+      </Link>
 
-        {/* Tombol Close */}
-        <Link href="/auth/login" className="absolute top-6 right-6 p-2.5 hover:bg-slate-100 rounded-full z-20 group transition-all">
-          <X className="w-5 h-5 text-slate-400 group-hover:text-slate-700" />
-        </Link>
+      {/* --- LEFT SIDE: Spatial Glass Environment --- */}
+      <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-between p-12 overflow-hidden bg-white border-r border-slate-100">
+        <div className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] rounded-full bg-purple-400/20 mix-blend-multiply filter blur-[100px] animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-primary/15 mix-blend-multiply filter blur-[100px] animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-[30%] right-[10%] w-[50%] h-[50%] rounded-full bg-blue-400/15 mix-blend-multiply filter blur-[100px] animate-pulse" style={{ animationDelay: '4s' }} />
 
-        {/* ── Left Side ─────────────────────────────────────────────────────── */}
-        <div className="hidden md:flex md:w-1/2 bg-[#FFF9F8] p-12 flex-col items-center justify-center text-center relative overflow-hidden border-r border-slate-50">
-          <div className="absolute -top-10 -left-10 w-40 h-40 bg-orange-100 rounded-full opacity-50 blur-3xl" />
-          <div className="absolute -bottom-20 -right-20 w-60 h-60 bg-purple-100 rounded-full opacity-50 blur-3xl" />
-
-          <Link href="/" className="flex items-center gap-3 mb-8 group z-10">
-            <div className="w-10 h-10 bg-[#FF6B4A] rounded-xl flex items-center justify-center shadow-lg shadow-orange-200 transition-transform group-hover:rotate-12 duration-300">
-              <div className="w-5 h-5 bg-white rounded-sm rotate-45" />
+        <div className="relative z-10 flex flex-col h-full justify-between">
+          <Link href="/" className="inline-flex items-center gap-3 w-fit group">
+            <div className="w-10 h-10 bg-gradient-to-tr from-primary to-primary/80 rounded-xl flex items-center justify-center shadow-lg shadow-primary/30 transition-transform group-hover:scale-105 duration-300">
+              <div className="w-4 h-4 bg-white rounded-sm rotate-45" />
             </div>
             <span className="text-2xl font-extrabold text-slate-800 tracking-tight">
-              Learnify<span className="text-[#FF6B4A]">.</span>
+              Learnify<span className="text-primary">.</span>
             </span>
           </Link>
 
-          <h2 className="text-3xl font-bold text-slate-900 mb-4 leading-tight z-10">
-            Verifikasi <br />
-            <span className="text-[#FF6B4A]">Dua Langkah</span>
-          </h2>
-          <p className="text-slate-500 text-sm max-w-[240px] leading-relaxed z-10">
-            Pilih metode verifikasi yang kamu inginkan untuk mengamankan akun.
-          </p>
+          <div className="mb-10 max-w-lg bg-white/40 backdrop-blur-3xl border border-white/60 p-8 rounded-[32px] shadow-[0_8px_40px_-12px_rgba(0,0,0,0.05)] animate-in fade-in slide-in-from-bottom-8 duration-1000">
+            <h2 className="text-4xl xl:text-5xl font-bold tracking-tight mb-6 text-slate-900 leading-tight">
+              Verifikasi <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-600">
+                Dua Langkah
+              </span>
+            </h2>
+            <p className="text-slate-600 font-medium">
+              Pilih metode verifikasi yang kamu inginkan untuk mengamankan akun.
+            </p>
 
-          {/* Method selector visual */}
-          <div className="relative w-full max-w-[240px] flex flex-col gap-3 mt-8 z-10">
-            <div className={`flex items-center gap-3 rounded-2xl px-4 py-3 transition-all ${mode === "totp" ? "bg-[#FF6B4A] shadow-lg shadow-orange-100" : "bg-white border border-slate-100"}`}>
-              <Smartphone className={`w-5 h-5 ${mode === "totp" ? "text-white" : "text-slate-400"}`} />
-              <span className={`text-sm font-bold ${mode === "totp" ? "text-white" : "text-slate-500"}`}>Authenticator App</span>
-            </div>
-            <div className={`flex items-center gap-3 rounded-2xl px-4 py-3 transition-all ${mode === "email-otp" ? "bg-[#FF6B4A] shadow-lg shadow-orange-100" : "bg-white border border-slate-100"}`}>
-              <Mail className={`w-5 h-5 ${mode === "email-otp" ? "text-white" : "text-slate-400"}`} />
-              <span className={`text-sm font-bold ${mode === "email-otp" ? "text-white" : "text-slate-500"}`}>Kode via Email</span>
+            <div className="relative w-full max-w-[280px] flex flex-col gap-3 mt-8 z-10">
+              <div className={`flex items-center gap-3 rounded-2xl px-4 py-3 transition-all ${mode === "totp" ? "bg-gradient-to-r from-primary to-primary/80 shadow-lg shadow-primary/20" : "bg-white/50 border border-white/60"}`}>
+                <Smartphone className={`w-5 h-5 ${mode === "totp" ? "text-white" : "text-slate-500"}`} />
+                <span className={`text-sm font-bold ${mode === "totp" ? "text-white" : "text-slate-600"}`}>Authenticator App</span>
+              </div>
+              <div className={`flex items-center gap-3 rounded-2xl px-4 py-3 transition-all ${mode === "email-otp" ? "bg-gradient-to-r from-primary to-primary/80 shadow-lg shadow-primary/20" : "bg-white/50 border border-white/60"}`}>
+                <Mail className={`w-5 h-5 ${mode === "email-otp" ? "text-white" : "text-slate-500"}`} />
+                <span className={`text-sm font-bold ${mode === "email-otp" ? "text-white" : "text-slate-600"}`}>Kode via Email</span>
+              </div>
             </div>
           </div>
+          <div />
         </div>
+      </div>
 
-        {/* ── Right Side ────────────────────────────────────────────────────── */}
-        <div className="w-full md:w-1/2 p-8 lg:p-14 bg-white flex flex-col justify-center overflow-y-auto">
+      {/* ── Right Side ────────────────────────────────────────────────────── */}
+      <div className="w-full lg:w-1/2 p-8 lg:p-24 bg-white flex flex-col justify-center overflow-y-auto relative z-10">
 
           {/* ── TOTP Mode ──────────────────────────────────────────────────────── */}
           {mode === "totp" && (
@@ -245,7 +251,7 @@ const TwoFactorVerifyPage = () => {
                 <h3 className="text-2xl font-bold text-slate-900 mb-2">Authenticator App</h3>
                 <p className="text-slate-500 text-sm leading-relaxed">
                   Buka <strong>Google Authenticator</strong> atau <strong>Authy</strong> dan masukkan kode 6 digit untuk{" "}
-                  <span className="text-[#FF6B4A] font-semibold">Learnify LMS</span>.
+                  <span className="text-primary font-semibold">Learnify LMS</span>.
                 </p>
               </div>
 
@@ -270,9 +276,9 @@ const TwoFactorVerifyPage = () => {
                     disabled={isLoading}
                     className={`w-12 h-14 text-center text-xl font-bold rounded-xl border-2 outline-none transition-all duration-200 ${
                       digit
-                        ? "border-[#FF6B4A] bg-orange-50 text-[#FF6B4A]"
+                        ? "border-primary bg-primary/5 text-primary"
                         : "border-slate-200 bg-slate-50 text-slate-800"
-                    } focus:border-[#FF6B4A] focus:ring-2 focus:ring-orange-50 disabled:opacity-50`}
+                    } focus:border-primary focus:ring-2 focus:ring-primary/10 disabled:opacity-50`}
                   />
                 ))}
               </div>
@@ -280,7 +286,7 @@ const TwoFactorVerifyPage = () => {
               <button
                 onClick={() => handleVerifyTotp()}
                 disabled={isLoading || code.some((d) => !d)}
-                className="w-full h-12 bg-[#FF6B4A] hover:bg-[#fa5a35] text-white rounded-xl font-bold transition-all shadow-lg shadow-orange-100 flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed mb-4"
+                className="w-full h-12 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white rounded-xl font-bold transition-all shadow-lg shadow-primary/30 flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed mb-4"
               >
                 {isLoading
                   ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -291,14 +297,14 @@ const TwoFactorVerifyPage = () => {
               <div className="flex flex-col gap-2 items-center">
                 <button
                   onClick={() => switchMode("email-otp")}
-                  className="flex items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-[#FF6B4A] transition-colors"
+                  className="flex items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-primary transition-colors"
                 >
                   <Mail className="w-3.5 h-3.5" />
                   Gunakan kode via Email sebagai gantinya
                 </button>
                 <button
                   onClick={() => switchMode("backup")}
-                  className="text-xs font-medium text-slate-400 hover:text-[#FF6B4A] transition-colors"
+                  className="text-xs font-medium text-slate-400 hover:text-primary transition-colors"
                 >
                   Tidak bisa akses Authenticator? Gunakan backup code
                 </button>
@@ -311,7 +317,7 @@ const TwoFactorVerifyPage = () => {
             <>
               <button
                 onClick={() => switchMode("totp")}
-                className="inline-flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-[#FF6B4A] transition-colors mb-6 group w-fit"
+                className="inline-flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-primary transition-colors mb-6 group w-fit"
               >
                 <RotateCw className="w-3.5 h-3.5" />
                 Kembali ke Authenticator App
@@ -343,16 +349,16 @@ const TwoFactorVerifyPage = () => {
                 <button
                   onClick={handleSendEmailOtp}
                   disabled={isSendingOtp}
-                  className="w-full h-12 border-2 border-[#FF6B4A] text-[#FF6B4A] hover:bg-orange-50 rounded-xl font-bold transition-all flex items-center justify-center gap-2 mb-4 disabled:opacity-50"
+                  className="w-full h-12 border-2 border-primary text-primary hover:bg-primary/5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 mb-4 disabled:opacity-50"
                 >
                   {isSendingOtp
-                    ? <div className="w-5 h-5 border-2 border-orange-300 border-t-[#FF6B4A] rounded-full animate-spin" />
+                    ? <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
                     : <><Send className="w-4 h-4" />Kirim Kode ke Email</>}
                 </button>
               ) : (
                 <form onSubmit={handleVerifyEmailOtp} className="space-y-4">
                   <div className="group">
-                    <label className="text-xs font-bold text-slate-700 mb-1.5 block group-focus-within:text-[#FF6B4A]">
+                    <label className="text-xs font-bold text-slate-700 mb-1.5 block group-focus-within:text-primary">
                       Kode dari Email
                     </label>
                     <input
@@ -361,7 +367,7 @@ const TwoFactorVerifyPage = () => {
                       value={emailOtp}
                       onChange={(e) => setEmailOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
                       placeholder="123456"
-                      className="w-full h-14 bg-slate-50 border border-slate-100 rounded-xl px-4 outline-none focus:border-[#FF6B4A] focus:ring-2 focus:ring-orange-50 transition-all text-center text-3xl font-bold font-mono tracking-[0.4em]"
+                      className="w-full h-14 bg-slate-50 border border-slate-100 rounded-xl px-4 outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all text-center text-3xl font-bold font-mono tracking-[0.4em]"
                       maxLength={6}
                       disabled={isLoading}
                       autoFocus
@@ -371,7 +377,7 @@ const TwoFactorVerifyPage = () => {
                   <button
                     type="submit"
                     disabled={isLoading || emailOtp.length !== 6}
-                    className="w-full h-12 bg-[#FF6B4A] hover:bg-[#fa5a35] text-white rounded-xl font-bold transition-all shadow-lg shadow-orange-100 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full h-12 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white rounded-xl font-bold transition-all shadow-lg shadow-primary/30 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isLoading
                       ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -387,7 +393,7 @@ const TwoFactorVerifyPage = () => {
                         type="button"
                         onClick={handleSendEmailOtp}
                         disabled={isSendingOtp}
-                        className="text-xs font-medium text-[#FF6B4A] hover:underline disabled:opacity-50"
+                        className="text-xs font-medium text-primary hover:underline disabled:opacity-50"
                       >
                         Kirim ulang kode
                       </button>
@@ -403,7 +409,7 @@ const TwoFactorVerifyPage = () => {
             <>
               <button
                 onClick={() => switchMode("totp")}
-                className="inline-flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-[#FF6B4A] transition-colors mb-6 group w-fit"
+                className="inline-flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-primary transition-colors mb-6 group w-fit"
               >
                 <RotateCw className="w-4 h-4" />
                 Kembali ke kode Authenticator
@@ -425,7 +431,7 @@ const TwoFactorVerifyPage = () => {
 
               <form onSubmit={handleVerifyBackup} className="space-y-4">
                 <div className="group">
-                  <label className="text-xs font-bold text-slate-700 mb-1.5 block group-focus-within:text-[#FF6B4A]">
+                  <label className="text-xs font-bold text-slate-700 mb-1.5 block group-focus-within:text-primary">
                     Backup Code
                   </label>
                   <input
@@ -433,7 +439,7 @@ const TwoFactorVerifyPage = () => {
                     value={backupCode}
                     onChange={(e) => setBackupCode(e.target.value)}
                     placeholder="Contoh: a1b2c3d4e5f6"
-                    className="w-full h-11 bg-slate-50 border border-slate-100 rounded-xl px-4 outline-none focus:border-[#FF6B4A] focus:bg-white focus:ring-2 focus:ring-orange-50 transition-all text-sm font-mono font-medium tracking-wider"
+                    className="w-full h-11 bg-slate-50 border border-slate-100 rounded-xl px-4 outline-none focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/10 transition-all text-sm font-mono font-medium tracking-wider"
                     required
                     disabled={isLoading}
                     autoFocus
@@ -443,7 +449,7 @@ const TwoFactorVerifyPage = () => {
                 <button
                   type="submit"
                   disabled={isLoading || !backupCode.trim()}
-                  className="w-full h-12 bg-[#FF6B4A] hover:bg-[#fa5a35] text-white rounded-xl font-bold transition-all shadow-lg shadow-orange-100 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full h-12 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white rounded-xl font-bold transition-all shadow-lg shadow-primary/30 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading
                     ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -453,7 +459,6 @@ const TwoFactorVerifyPage = () => {
             </>
           )}
         </div>
-      </div>
     </div>
   );
 };
