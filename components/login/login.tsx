@@ -94,224 +94,189 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="h-screen w-full bg-slate-50 flex items-center justify-center p-4 md:p-8 font-sans overflow-hidden fixed inset-0">
-      <div className="bg-white rounded-[32px] overflow-hidden shadow-2xl shadow-slate-200 w-full max-w-[1100px] flex flex-col md:flex-row h-full max-h-[650px] relative animate-in fade-in duration-700 slide-in-from-bottom-5">
-        {/* Tombol Close */}
-        <Link
-          href="/"
-          className="absolute top-6 right-6 p-2.5 hover:bg-slate-100 rounded-full transition-all duration-300 z-20 group"
-        >
-          <X className="w-5 h-5 text-slate-400 group-hover:text-slate-700 group-hover:scale-110" />
-        </Link>
+    <div className="h-screen w-full flex bg-slate-50 font-sans overflow-hidden selection:bg-primary/20">
+      
+      {/* --- LEFT SIDE: Spatial Glass Environment --- */}
+      <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-between p-12 overflow-hidden bg-white border-r border-slate-100">
+        {/* Immersive Spatial Background */}
+        <div className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] rounded-full bg-purple-400/20 mix-blend-multiply filter blur-[100px] animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-primary/15 mix-blend-multiply filter blur-[100px] animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-[30%] right-[10%] w-[50%] h-[50%] rounded-full bg-blue-400/15 mix-blend-multiply filter blur-[100px] animate-pulse" style={{ animationDelay: '4s' }} />
 
-        {/* --- LEFT SIDE --- */}
-        <div className="hidden md:flex md:w-1/2 bg-[#FFF9F8] p-12 flex-col items-center justify-center text-center relative overflow-hidden border-r border-slate-50">
-          <div className="absolute -top-10 -left-10 w-40 h-40 bg-orange-100 rounded-full opacity-50 blur-3xl" />
-          <div className="absolute -bottom-20 -right-20 w-60 h-60 bg-purple-100 rounded-full opacity-50 blur-3xl" />
-
-          <Link href="/" className="flex items-center gap-3 mb-8 group z-10">
-            <div className="w-10 h-10 bg-[#FF6B4A] rounded-xl flex items-center justify-center shadow-lg shadow-orange-200 transition-transform group-hover:rotate-12 duration-300">
-              <div className="w-5 h-5 bg-white rounded-sm rotate-45" />
+        {/* Content */}
+        <div className="relative z-10 flex flex-col h-full justify-between">
+          <Link href="/" className="inline-flex items-center gap-3 w-fit group">
+            <div className="w-10 h-10 bg-gradient-to-tr from-primary to-primary/80 rounded-xl flex items-center justify-center shadow-lg shadow-primary/30 transition-transform group-hover:scale-105 duration-300">
+              <div className="w-4 h-4 bg-white rounded-sm rotate-45" />
             </div>
             <span className="text-2xl font-extrabold text-slate-800 tracking-tight">
-              Learnify<span className="text-[#FF6B4A]">.</span>
+              Learnify<span className="text-primary">.</span>
             </span>
           </Link>
 
-          <h2 className="text-3xl font-bold text-slate-900 mb-4 leading-tight z-10">
-            Mari Mulai <br />
-            <span className="text-[#FF6B4A]">Petualangan Belajar</span> Anda
-          </h2>
-
-          <div className="relative w-full aspect-square max-w-[280px] flex items-center justify-center z-10">
-            <div className="w-full h-full bg-gradient-to-br from-orange-50 to-purple-50 rounded-3xl flex flex-col items-center justify-center gap-6 p-10">
-              <div className="w-20 h-20 bg-[#FF6B4A] rounded-2xl flex items-center justify-center shadow-lg shadow-orange-200">
-                <div className="w-10 h-10 bg-white rounded-lg rotate-45" />
-              </div>
-              <div className="space-y-2 text-center">
-                <p className="text-slate-800 font-bold text-sm">Akses 300+ Kursus</p>
-                <p className="text-slate-400 text-xs">Belajar kapan saja, di mana saja</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex gap-2.5 mt-8 z-10">
-            <div className="w-3 h-3 bg-[#FF6B4A] rounded-full shadow-md shadow-orange-100" />
-            <div className="w-3 h-3 bg-orange-200 rounded-full" />
-            <div className="w-3 h-3 bg-orange-200 rounded-full" />
+          <div className="mb-10 max-w-lg bg-white/40 backdrop-blur-3xl border border-white/60 p-8 rounded-[32px] shadow-[0_8px_40px_-12px_rgba(0,0,0,0.05)] animate-in fade-in slide-in-from-bottom-8 duration-1000">
+            <h2 className="text-4xl xl:text-5xl font-bold tracking-tight mb-6 text-slate-900 leading-tight">
+              Mulai Petualangan <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-600">
+                Belajar Anda
+              </span>
+            </h2>
+            <p className="text-slate-600 text-lg font-medium leading-relaxed">
+              Platform pembelajaran premium untuk mengakses ratusan kursus eksklusif, dipandu oleh pakar industri.
+            </p>
           </div>
         </div>
+      </div>
 
-        {/* --- RIGHT SIDE --- */}
-        <div className="w-full md:w-1/2 p-8 lg:p-14 bg-white flex flex-col justify-center relative overflow-y-auto">
-          <div className="mb-8">
-            <h3 className="text-2xl font-bold text-slate-900 mb-2">
-              Masuk ke Akun Anda
-            </h3>
-            <p className="text-slate-500 text-sm">
-              Akses ribuan materi belajar eksklusif sekarang.
+      {/* --- RIGHT SIDE: Elegant Form --- */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 lg:p-24 bg-white/80 backdrop-blur-sm z-10 overflow-y-auto">
+        <div className="w-full max-w-[400px] animate-in fade-in slide-in-from-bottom-4 duration-700">
+          
+          {/* Header */}
+          <div className="mb-10 text-center lg:text-left">
+            <Link href="/" className="lg:hidden inline-flex items-center gap-2 mb-8 group">
+              <div className="w-10 h-10 bg-gradient-to-tr from-primary to-primary/80 rounded-xl flex items-center justify-center shadow-lg shadow-primary/30 transition-transform group-hover:scale-105 duration-300">
+                <div className="w-4 h-4 bg-white rounded-sm rotate-45" />
+              </div>
+            </Link>
+            <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 mb-2">
+              Selamat Datang
+            </h1>
+            <p className="text-slate-500 font-medium">
+              Silakan masuk ke akun Anda.
             </p>
           </div>
 
+          {/* Google Auth Button */}
           <button
             type="button"
             onClick={handleGoogleLogin}
             disabled={isGoogleLoading || isLoading}
-            className="w-full h-11 border border-slate-200 rounded-xl flex items-center justify-center gap-3 text-slate-700 font-bold hover:bg-slate-50 transition-all mb-6 group shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full h-12 bg-white border border-slate-200 rounded-xl flex items-center justify-center gap-3 text-slate-700 font-bold hover:bg-slate-50 hover:border-slate-300 transition-all mb-8 shadow-sm group disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isGoogleLoading ? (
-              <div className="w-5 h-5 border-2 border-slate-300 border-t-red-500 rounded-full animate-spin" />
+              <div className="w-5 h-5 border-2 border-slate-300 border-t-primary rounded-full animate-spin" />
             ) : (
-              <Chrome className="w-5 h-5 text-red-500 group-hover:scale-110 transition-transform" />
+              <svg viewBox="0 0 24 24" className="w-5 h-5 group-hover:scale-110 transition-transform" aria-hidden="true">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+              </svg>
             )}
-            <span className="text-sm">{isGoogleLoading ? "Menghubungkan..." : "Masuk Cepat dengan Google"}</span>
+            <span className="text-sm">{isGoogleLoading ? "Menghubungkan..." : "Lanjutkan dengan Google"}</span>
           </button>
 
-          <div className="flex items-center gap-4 mb-6">
-            <div className="h-[1px] bg-slate-100 flex-1" />
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Atau</span>
-            <div className="h-[1px] bg-slate-100 flex-1" />
+          <div className="flex items-center gap-4 mb-8 opacity-70">
+            <div className="h-[1px] bg-slate-200 flex-1" />
+            <span className="text-[10px] font-bold text-slate-500 font-medium uppercase tracking-widest">Atau gunakan email</span>
+            <div className="h-[1px] bg-slate-200 flex-1" />
           </div>
 
-          {/* Registration Success Banner */}
+          {/* Banners */}
           {searchParams.get("registered") === "true" && !error && (
-            <div className="mb-6 bg-green-50 border border-green-100 rounded-2xl p-4 animate-in fade-in slide-in-from-top-2 duration-300">
-              <div className="flex items-start gap-3">
-                <div className="w-9 h-9 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <CheckCircle2 className="w-5 h-5 text-green-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="font-bold text-slate-800 text-sm">Pendaftaran Berhasil! 🎉</p>
-                  <p className="text-slate-500 text-xs mt-0.5 leading-relaxed">
-                    Akun Anda telah dibuat. Silakan cek email untuk verifikasi (jika diperlukan) dan masuk menggunakan akun tersebut.
-                  </p>
-                </div>
+            <div className="mb-8 bg-green-50 border border-green-200 rounded-2xl p-4 flex gap-3 items-start animate-in fade-in">
+              <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold text-green-900 text-sm">Pendaftaran Berhasil</p>
+                <p className="text-green-700 text-xs mt-1">Silakan masuk menggunakan akun baru Anda.</p>
               </div>
             </div>
           )}
 
-          {/* User Not Found / Suggest Register Banner */}
           {userNotFound && (
-            <div className="mb-6 bg-orange-50 border border-orange-100 rounded-2xl p-4 animate-in fade-in slide-in-from-top-2 duration-300">
-              <div className="flex items-start gap-3">
-                <div className="w-9 h-9 bg-orange-100 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <AlertCircle className="w-5 h-5 text-[#FF6B4A]" />
-                </div>
-                <div className="flex-1">
-                  <p className="font-bold text-slate-800 text-sm">Belum punya akun?</p>
-                  <p className="text-slate-500 text-xs mt-0.5 leading-relaxed">
-                    Sepertinya email <span className="font-bold text-[#FF6B4A]">{email}</span> belum terdaftar atau password Anda salah.
-                  </p>
-                  <div className="flex items-center gap-2 mt-3">
-                    <Link
-                      href={`/auth/register?email=${encodeURIComponent(email)}`}
-                      className="h-8 px-4 bg-[#FF6B4A] text-white text-xs font-bold rounded-lg hover:bg-[#fa5a35] transition-colors flex items-center gap-1.5 shadow-sm shadow-orange-100"
-                    >
-                      Daftar Sekarang <ChevronRight className="w-3 h-3" />
-                    </Link>
-                    <button
-                      type="button"
-                      onClick={() => setUserNotFound(false)}
-                      className="h-8 px-3 text-slate-400 text-xs font-bold hover:text-slate-600 transition-colors"
-                    >
-                      Coba lagi
-                    </button>
-                  </div>
-                </div>
+            <div className="mb-8 bg-orange-50 border border-orange-200 rounded-2xl p-4 flex gap-3 items-start animate-in fade-in">
+              <AlertCircle className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold text-orange-900 text-sm">Akun tidak ditemukan</p>
+                <p className="text-orange-800 text-xs mt-1">Email atau password yang Anda masukkan salah.</p>
+                <Link
+                  href={`/auth/register?email=${encodeURIComponent(email)}`}
+                  className="inline-block mt-2 text-primary text-xs font-bold hover:underline"
+                >
+                  Buat akun baru &rarr;
+                </Link>
               </div>
             </div>
           )}
 
-          {/* Error Message (General) */}
           {error && !userNotFound && (
-            <div className="mb-4 flex items-center gap-3 bg-red-50 border border-red-100 text-red-600 rounded-xl px-4 py-3 text-sm font-medium">
-              <AlertCircle className="w-4 h-4 flex-shrink-0" />
-              {error}
+            <div className="mb-8 flex gap-3 bg-red-50 border border-red-100 text-red-600 rounded-2xl px-4 py-3 text-sm font-medium animate-in fade-in">
+              <AlertCircle className="w-5 h-5 flex-shrink-0" />
+              <p>{error}</p>
             </div>
           )}
 
-          <form className="space-y-4" onSubmit={handleSubmit}>
-            <div className="group">
-              <label className="text-xs font-bold text-slate-700 mb-1.5 block group-focus-within:text-[#FF6B4A]">
+          {/* Form */}
+          <form className="space-y-5" onSubmit={handleSubmit}>
+            <div>
+              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 block ml-1">
                 Alamat Email
               </label>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#FF6B4A]" />
+              <div className="relative group">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 font-medium group-focus-within:text-primary transition-colors" />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="nama@email.com"
-                  className="w-full h-11 bg-slate-50 border border-slate-100 rounded-xl pl-11 pr-4 outline-none focus:border-[#FF6B4A] focus:bg-white focus:ring-2 focus:ring-orange-50 transition-all text-sm font-medium"
+                  className="w-full h-12 bg-slate-50 border border-slate-100 rounded-xl pl-11 pr-4 outline-none focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all text-sm font-medium"
                   required
                   disabled={isLoading}
                 />
               </div>
             </div>
 
-            <div className="group">
-              <div className="flex justify-between items-center mb-1.5">
-                <label className="text-xs font-bold text-slate-700 group-focus-within:text-[#FF6B4A]">
-                  Kata Sandi
+            <div>
+              <div className="flex justify-between items-center mb-2 ml-1">
+                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  Password
                 </label>
-                <Link href="/auth/forgot-password" className="text-[11px] font-bold text-[#FF6B4A] hover:underline">
-                  Lupa Password?
+                <Link href="/auth/forgot-password" className="text-[11px] font-bold text-primary hover:text-primary/80 transition-colors">
+                  Lupa?
                 </Link>
               </div>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#FF6B4A]" />
+              <div className="relative group">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 font-medium group-focus-within:text-primary transition-colors" />
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••"
-                  className="w-full h-11 bg-slate-50 border border-slate-100 rounded-xl pl-11 pr-11 outline-none focus:border-[#FF6B4A] focus:bg-white focus:ring-2 focus:ring-orange-50 transition-all text-sm font-medium"
+                  className="w-full h-12 bg-slate-50 border border-slate-100 rounded-xl pl-11 pr-11 outline-none focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all text-sm font-medium"
                   required
                   disabled={isLoading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-slate-500 font-medium hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 pt-1">
-              <input
-                type="checkbox"
-                id="rememberMe"
-                checked={rememberMe}
-                onChange={() => setRememberMe(!rememberMe)}
-                className="w-4 h-4 accent-[#FF6B4A] cursor-pointer"
-              />
-              <label htmlFor="rememberMe" className="text-xs font-medium text-slate-600 cursor-pointer">
-                Ingat saya di perangkat ini
-              </label>
-            </div>
-
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full h-12 bg-[#FF6B4A] hover:bg-[#fa5a35] text-white rounded-xl font-bold transition-all shadow-lg shadow-orange-100 flex items-center justify-center gap-2 group active:scale-[0.98] mt-2 disabled:opacity-70 disabled:cursor-not-allowed"
+              className="w-full h-12 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white rounded-xl font-bold transition-all mt-8 shadow-lg shadow-primary/30 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 group"
             >
               {isLoading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
                   Masuk Sekarang
-                  <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                  <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </>
               )}
             </Button>
           </form>
 
-          <p className="text-center text-xs font-medium text-slate-500 mt-8">
-            Belum bergabung?{" "}
-            <Link href="/auth/register" className="text-[#FF6B4A] font-bold hover:underline">
-              Daftar Akun Baru
+          <p className="text-center text-sm font-medium text-slate-500 mt-10">
+            Belum memiliki akun?{" "}
+            <Link href="/auth/register" className="text-primary font-bold hover:text-primary/80 transition-colors">
+              Daftar Sekarang
             </Link>
           </p>
         </div>
