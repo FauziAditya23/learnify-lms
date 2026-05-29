@@ -152,7 +152,6 @@ export default function RevenueFilters() {
       doc.setFontSize(10);
       doc.setTextColor(100, 100, 100);
 
-      const search = searchParams.get("search");
       const periodLabel = start && end ? `${start} s/d ${end}` : "Semua Waktu";
       const searchLabel = search?.trim() ? search : "-";
       doc.text(`Periode: ${periodLabel}  |  Kata Kunci: ${searchLabel}`, 14, 21);
