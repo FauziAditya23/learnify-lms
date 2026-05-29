@@ -25,8 +25,6 @@ import {
   Download,
   FileText,
 } from "lucide-react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 
@@ -500,6 +498,9 @@ export default function PaymentTable({
       if (!res.ok) throw new Error("Gagal mengambil data untuk export");
       const json = await res.json();
       const rows: PaymentRow[] = json.data;
+
+      const jsPDF = (await import("jspdf")).default;
+      const autoTable = (await import("jspdf-autotable")).default;
 
       const doc = new jsPDF({
         orientation: "landscape",
