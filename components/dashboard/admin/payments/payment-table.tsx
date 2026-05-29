@@ -22,6 +22,7 @@ import {
   Tag,
   Banknote,
   X,
+  Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
@@ -338,6 +339,7 @@ export default function PaymentTable({
   const [statusFilter, setStatusFilter] = useState("all");
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
   const [selectedRow, setSelectedRow] = useState<PaymentRow | null>(null);
   const limit = 15;
 
@@ -375,6 +377,110 @@ export default function PaymentTable({
     });
     if (res.ok) {
       await fetchData();
+    }
+  };
+
+  // ── Export CSV ────────────────────────────────────────────────────────────────
+  const handleExportCSV = async () => {
+    setExportLoading(true);
+    try {
+      const params = new URLSearchParams({
+        status: statusFilter,
+        search,
+      });
+      const res = await fetch(`/api/admin/payments/export?${params}`);
+      if (!res.ok) throw new Error("Gagal mengambil data untuk export");
+      const json = await res.json();
+      const rows: PaymentRow[] = json.data;
+
+      const PAYMENT_TYPE_CSV: Record<string, string> = {
+        bank_transfer: "Transfer Bank",
+        credit_card: "Kartu Kredit",
+        gopay: "GoPay",
+        shopeepay: "ShopeePay",
+        qris: "QRIS",
+        cstore: "Minimarket",
+        echannel: "Mandiri",
+        bca_klikbca: "BCA KlikBCA",
+        bca_klikpay: "BCA KlikPay",
+        mandiri_clickpay: "Mandiri ClickPay",
+        permata: "Permata",
+        other: "Lainnya",
+      };
+
+      const STATUS_LABEL_CSV: Record<string, string> = {
+        pending: "Pending",
+        paid: "Lunas",
+        failed: "Gagal",
+        expired: "Kedaluwarsa",
+        cancelled: "Dibatalkan",
+      };
+
+      const headers = [
+        "No",
+        "No Invoice",
+        "Nama Student",
+        "Email Student",
+        "Nama Kursus",
+        "Kategori",
+        "Total Tagihan (IDR)",
+        "Diskon (IDR)",
+        "Kode Kupon",
+        "Diskon (%)",
+        "Status Invoice",
+        "Metode Pembayaran",
+        "Status Transaksi",
+        "Tgl Dibuat",
+        "Jatuh Tempo",
+      ];
+
+      const csvRows = rows.map((row, idx) => [
+        idx + 1,
+        row.invoiceNumber,
+        row.student.name,
+        row.student.email,
+        row.course?.title ?? "-",
+        row.course?.category ?? "-",
+        row.totalAmount,
+        row.discountAmt,
+        row.couponCode ?? "-",
+        row.discountPercent ?? "-",
+        STATUS_LABEL_CSV[row.invoiceStatus] ?? row.invoiceStatus,
+        row.latestTransaction
+          ? (PAYMENT_TYPE_CSV[row.latestTransaction.paymentType] ?? row.latestTransaction.paymentType)
+          : "-",
+        row.latestTransaction
+          ? (STATUS_LABEL_CSV[row.latestTransaction.transactionStatus] ?? row.latestTransaction.transactionStatus)
+          : "-",
+        new Date(row.createdDate).toLocaleString("id-ID"),
+        new Date(row.dueDate).toLocaleString("id-ID"),
+      ]);
+
+      const escape = (v: unknown) => {
+        const s = String(v ?? "");
+        return s.includes(",") || s.includes('"') || s.includes("\n")
+          ? `"${s.replace(/"/g, '""')}"`
+          : s;
+      };
+
+      const csvContent =
+        "\uFEFF" + // BOM for Excel UTF-8
+        [headers, ...csvRows].map((r) => r.map(escape).join(",")).join("\r\n");
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const timestamp = new Date().toISOString().slice(0, 10);
+      const filterLabel = statusFilter === "all" ? "semua" : statusFilter;
+      link.href = url;
+      link.download = `payment-status_${filterLabel}_${timestamp}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Export error:", err);
+      alert("Gagal mengekspor data. Silakan coba lagi.");
+    } finally {
+      setExportLoading(false);
     }
   };
 
@@ -459,15 +565,31 @@ export default function PaymentTable({
             </div>
           </div>
 
-          {/* Refresh */}
-          <button
-            onClick={fetchData}
-            disabled={loading}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-slate-100 text-slate-400 hover:text-orange-500 hover:border-orange-200 hover:bg-orange-50 text-sm font-bold transition-all"
-          >
-            <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
-            Refresh
-          </button>
+          {/* Actions: Refresh + Export */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={fetchData}
+              disabled={loading}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-slate-100 text-slate-400 hover:text-orange-500 hover:border-orange-200 hover:bg-orange-50 text-sm font-bold transition-all"
+            >
+              <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
+              Refresh
+            </button>
+
+            <button
+              onClick={handleExportCSV}
+              disabled={exportLoading || loading}
+              title="Export data sesuai filter aktif ke CSV"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-emerald-200 text-emerald-600 bg-emerald-50 hover:bg-emerald-100 hover:border-emerald-300 text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {exportLoading ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                <Download size={14} />
+              )}
+              {exportLoading ? "Mengekspor..." : "Export CSV"}
+            </button>
+          </div>
         </div>
 
         {/* Table */}
