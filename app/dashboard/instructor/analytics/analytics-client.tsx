@@ -5,7 +5,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   LineChart, Line, AreaChart, Area, PieChart, Pie, Cell 
 } from "recharts";
-import { Loader2, TrendingUp, Users, DollarSign, BookOpen, Download } from "lucide-react";
+import { Loader2, TrendingUp, Users, DollarSign, BookOpen, Download, FileText } from "lucide-react";
 import ExcelJS from "exceljs";
 
 interface AnalyticsData {
@@ -22,6 +22,8 @@ export default function AnalyticsClient() {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
+  const [csvLoading, setCsvLoading] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -87,6 +89,174 @@ export default function AnalyticsClient() {
       console.error("Excel export error:", error);
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  const exportToCSV = () => {
+    if (!data) return;
+    setCsvLoading(true);
+    try {
+      const csvRows = [];
+      
+      // Title
+      csvRows.push(["Instructor Performance Report"]);
+      csvRows.push([]);
+
+      // Statistics Section
+      csvRows.push(["Overview Statistics"]);
+      csvRows.push(["Metric", "Value"]);
+      csvRows.push(["Total Revenue", data.totalRevenue]);
+      csvRows.push(["Total Students", data.totalEnrollments]);
+      csvRows.push(["Total Courses", data.coursePopularity.length]);
+      csvRows.push([]);
+
+      // Revenue Section
+      csvRows.push(["Monthly Revenue Trend"]);
+      csvRows.push(["Month", "Revenue (IDR)"]);
+      data.revenueData.forEach(row => csvRows.push([row.name, row.revenue]));
+      csvRows.push([]);
+
+      // Enrollments Section
+      csvRows.push(["Enrollment Activity"]);
+      csvRows.push(["Month", "Students"]);
+      data.enrollmentsData.forEach(row => csvRows.push([row.name, row.enrollments]));
+
+      const escape = (v: unknown) => {
+        const s = String(v ?? "");
+        return s.includes(",") || s.includes('"') || s.includes("\n")
+          ? `"${s.replace(/"/g, '""')}"`
+          : s;
+      };
+
+      const csvContent =
+        "\uFEFF" + // BOM for Excel UTF-8
+        csvRows.map((r) => r.map(escape).join(",")).join("\r\n");
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = window.URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `Learnify_Analytics_${new Date().toLocaleDateString("id-ID")}.csv`;
+      anchor.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("CSV export error:", error);
+    } finally {
+      setCsvLoading(false);
+    }
+  };
+
+  const exportToPDF = async () => {
+    if (!data) return;
+    setPdfLoading(true);
+    try {
+      const jsPDF = (await import("jspdf")).default;
+      const autoTable = (await import("jspdf-autotable")).default;
+
+      const doc = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
+
+      // ── Header Laporan ──────────────────────────────────────────────────────────
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(18);
+      doc.setTextColor(45, 45, 45); // #2D2D2D
+      doc.text("INSTRUCTOR PERFORMANCE REPORT", 14, 15);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
+      doc.text(`Waktu Unduh: ${new Date().toLocaleString("id-ID")}`, 14, 21);
+
+      // Garis pemisah
+      doc.setDrawColor(220, 220, 220);
+      doc.line(14, 25, 196, 25);
+
+      // ── Overview Statistics ───────────────────────────────────────────────────
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12);
+      doc.setTextColor(45, 45, 45);
+      doc.text("Overview Statistics", 14, 33);
+
+      const formatIDR = (amount: number) => {
+        return new Intl.NumberFormat("id-ID", {
+          style: "currency",
+          currency: "IDR",
+          maximumFractionDigits: 0,
+        }).format(amount);
+      };
+
+      const statsHeaders = ["Metric", "Value"];
+      const statsRows = [
+        ["Total Revenue", formatIDR(data.totalRevenue)],
+        ["Total Students", data.totalEnrollments.toLocaleString("id-ID")],
+        ["Total Courses", data.coursePopularity.length.toString()],
+      ];
+
+      autoTable(doc, {
+        head: [statsHeaders],
+        body: statsRows,
+        startY: 37,
+        theme: "striped",
+        headStyles: { fillColor: [74, 144, 226], fontStyle: "bold" }, // Blue
+        margin: { left: 14, right: 14 },
+      });
+
+      // ── Monthly Revenue Trend ─────────────────────────────────────────────────
+      let finalY = (doc as any).lastAutoTable.finalY + 10;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12);
+      doc.text("Monthly Revenue Trend", 14, finalY);
+
+      const revenueHeaders = ["Month", "Revenue"];
+      const revenueRows = data.revenueData.map(row => [row.name, formatIDR(row.revenue)]);
+
+      autoTable(doc, {
+        head: [revenueHeaders],
+        body: revenueRows,
+        startY: finalY + 4,
+        theme: "striped",
+        headStyles: { fillColor: [255, 107, 74], fontStyle: "bold" }, // Orange: #FF6B4A
+        margin: { left: 14, right: 14 },
+      });
+
+      // ── Enrollment Activity ──────────────────────────────────────────────────
+      finalY = (doc as any).lastAutoTable.finalY + 10;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12);
+      doc.text("Enrollment Activity", 14, finalY);
+
+      const enrollHeaders = ["Month", "Students"];
+      const enrollRows = data.enrollmentsData.map(row => [row.name, row.enrollments.toLocaleString("id-ID")]);
+
+      autoTable(doc, {
+        head: [enrollHeaders],
+        body: enrollRows,
+        startY: finalY + 4,
+        theme: "striped",
+        headStyles: { fillColor: [80, 227, 194], fontStyle: "bold", textColor: [45, 45, 45] }, // Tealish
+        margin: { left: 14, right: 14 },
+        didDrawPage: (pageData) => {
+          const pageCount = doc.internal.getNumberOfPages();
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(8);
+          doc.setTextColor(150, 150, 150);
+          doc.text(
+            `Halaman ${pageData.pageNumber} dari ${pageCount}`,
+            pageData.settings.margin.left,
+            doc.internal.pageSize.height - 10
+          );
+        },
+      });
+
+      doc.save(`Learnify_Analytics_${new Date().toISOString().slice(0, 10)}.pdf`);
+    } catch (error) {
+      console.error("PDF export error:", error);
+      alert("Gagal mengekspor data ke PDF. Silakan coba lagi.");
+    } finally {
+      setPdfLoading(false);
     }
   };
 
@@ -213,13 +383,34 @@ export default function AnalyticsClient() {
             <p className="text-xs text-slate-400 font-medium leading-relaxed mb-6">
                Download your full performance report including student data and financial statements.
             </p>
-            <button 
-              onClick={exportToExcel}
-              disabled={isExporting}
-              className="w-full h-12 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-black transition-colors shadow-lg shadow-slate-200 flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-               {isExporting ? "Exporting..." : "Export to Excel"}
-            </button>
+            <div className="flex flex-col gap-2 w-full">
+              <button 
+                onClick={exportToExcel}
+                disabled={isExporting || csvLoading || pdfLoading}
+                className="w-full h-12 bg-blue-600 text-white rounded-2xl font-bold text-sm hover:bg-blue-700 transition-colors shadow-md flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {isExporting ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+                {isExporting ? "Exporting Excel..." : "Export to Excel (.xlsx)"}
+              </button>
+
+              <button 
+                onClick={exportToCSV}
+                disabled={isExporting || csvLoading || pdfLoading}
+                className="w-full h-12 bg-emerald-600 text-white rounded-2xl font-bold text-sm hover:bg-emerald-700 transition-colors shadow-md flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {csvLoading ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+                {csvLoading ? "Exporting CSV..." : "Export to CSV"}
+              </button>
+
+              <button 
+                onClick={exportToPDF}
+                disabled={isExporting || csvLoading || pdfLoading}
+                className="w-full h-12 bg-rose-600 text-white rounded-2xl font-bold text-sm hover:bg-rose-700 transition-colors shadow-md flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {pdfLoading ? <Loader2 size={16} className="animate-spin" /> : <FileText size={16} />}
+                {pdfLoading ? "Exporting PDF..." : "Export to PDF"}
+              </button>
+            </div>
          </div>
       </div>
     </div>

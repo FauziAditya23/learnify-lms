@@ -46,6 +46,25 @@ export async function GET(req: Request) {
       orderBy: { createdDate: "desc" },
     });
 
+    const format = searchParams.get("format");
+    if (format === "json") {
+      const data = invoices.map((inv) => ({
+        id: inv.id,
+        invoiceNumber: inv.invoiceNumber,
+        createdDate: inv.createdDate.toISOString(),
+        totalAmount: Number(inv.totalAmount),
+        student: {
+          name: inv.user?.name || "-",
+          email: inv.user?.email || "-",
+        },
+        course: inv.course ? {
+          title: inv.course.title,
+          instructor: inv.course.instructor?.name || "-",
+        } : null,
+      }));
+      return NextResponse.json({ data });
+    }
+
     const workbook = new ExcelJS.Workbook();
     workbook.creator = "Learnify LMS";
     workbook.created = new Date();

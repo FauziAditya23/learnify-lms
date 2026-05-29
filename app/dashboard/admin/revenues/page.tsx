@@ -192,14 +192,8 @@ export default async function AdminRevenuesPage(props: {
             Live data dari Invoice DB
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 w-full lg:w-auto">
           <RevenueFilters />
-          <button className="h-11 px-6 bg-orange-500 hover:bg-orange-600 text-white rounded-xl flex items-center gap-2 font-bold text-sm transition-colors shadow-lg shadow-orange-100">
-            <script dangerouslySetInnerHTML={{ __html: `
-              document.currentScript.parentElement.onclick = function() { window.print(); }
-            `}} />
-            <Download size={16} /> Export Report
-          </button>
         </div>
       </header>
 
