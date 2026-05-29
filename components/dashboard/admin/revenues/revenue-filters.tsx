@@ -31,8 +31,15 @@ export default function RevenueFilters() {
   const handleExport = async () => {
     setIsExporting(true);
     let url = "/api/admin/revenues/export";
-    if (start && end) {
-      url += `?startDate=${start}&endDate=${end}`;
+    const params = new URLSearchParams();
+    if (start) params.set("startDate", start);
+    if (end) params.set("endDate", end);
+    const search = searchParams.get("search");
+    if (search) params.set("search", search);
+    
+    const queryStr = params.toString();
+    if (queryStr) {
+      url += `?${queryStr}`;
     }
     
     // Trigger download via anchor
@@ -51,11 +58,13 @@ export default function RevenueFilters() {
   const handleExportCSV = async () => {
     setCsvLoading(true);
     try {
-      let url = "/api/admin/revenues/export?format=json";
-      if (start && end) {
-        url += `&startDate=${start}&endDate=${end}`;
-      }
-      const res = await fetch(url);
+      const params = new URLSearchParams({ format: "json" });
+      if (start) params.set("startDate", start);
+      if (end) params.set("endDate", end);
+      const search = searchParams.get("search");
+      if (search) params.set("search", search);
+
+      const res = await fetch(`/api/admin/revenues/export?${params.toString()}`);
       if (!res.ok) throw new Error("Gagal mengambil data untuk export");
       const json = await res.json();
       const rows = json.data;
@@ -113,11 +122,13 @@ export default function RevenueFilters() {
   const handleExportPDF = async () => {
     setPdfLoading(true);
     try {
-      let url = "/api/admin/revenues/export?format=json";
-      if (start && end) {
-        url += `&startDate=${start}&endDate=${end}`;
-      }
-      const res = await fetch(url);
+      const params = new URLSearchParams({ format: "json" });
+      if (start) params.set("startDate", start);
+      if (end) params.set("endDate", end);
+      const search = searchParams.get("search");
+      if (search) params.set("search", search);
+
+      const res = await fetch(`/api/admin/revenues/export?${params.toString()}`);
       if (!res.ok) throw new Error("Gagal mengambil data untuk export");
       const json = await res.json();
       const rows = json.data;
@@ -141,8 +152,10 @@ export default function RevenueFilters() {
       doc.setFontSize(10);
       doc.setTextColor(100, 100, 100);
 
+      const search = searchParams.get("search");
       const periodLabel = start && end ? `${start} s/d ${end}` : "Semua Waktu";
-      doc.text(`Periode: ${periodLabel}`, 14, 21);
+      const searchLabel = search?.trim() ? search : "-";
+      doc.text(`Periode: ${periodLabel}  |  Kata Kunci: ${searchLabel}`, 14, 21);
       doc.text(`Waktu Unduh: ${new Date().toLocaleString("id-ID")}`, 14, 26);
       doc.text(`Jumlah Transaksi: ${rows.length}`, 14, 31);
 

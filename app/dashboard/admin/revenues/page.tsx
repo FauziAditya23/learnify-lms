@@ -15,7 +15,7 @@ const fmt = (n: number) =>
   }).format(n);
 
 // ── Data Fetcher ──────────────────────────────────────────────────────────────
-async function getRevenueData(startStr?: string, endStr?: string, page: number = 1, pageSize: number = 10) {
+async function getRevenueData(startStr?: string, endStr?: string, page: number = 1, pageSize: number = 10, searchStr?: string) {
   const now = new Date();
   
   let startDate = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -32,10 +32,19 @@ async function getRevenueData(startStr?: string, endStr?: string, page: number =
   const baseWhere = { isDeleted: 0, invoiceStatus: "paid" };
 
   // Filtered where clause for transactions and filtered revenue
-  const filterWhere = {
+  const filterWhere: any = {
     ...baseWhere,
     createdDate: { gte: startDate, lte: endDate },
   };
+
+  if (searchStr && searchStr.trim()) {
+    filterWhere.OR = [
+      { invoiceNumber: { contains: searchStr, mode: "insensitive" } },
+      { user: { name: { contains: searchStr, mode: "insensitive" } } },
+      { user: { email: { contains: searchStr, mode: "insensitive" } } },
+      { course: { title: { contains: searchStr, mode: "insensitive" } } },
+    ];
+  }
 
   const skip = (page - 1) * pageSize;
 
@@ -145,6 +154,7 @@ export default async function AdminRevenuesPage(props: {
   const start = typeof searchParams.start === "string" ? searchParams.start : undefined;
   const end = typeof searchParams.end === "string" ? searchParams.end : undefined;
   const page = typeof searchParams.page === "string" ? parseInt(searchParams.page, 10) : 1;
+  const search = typeof searchParams.search === "string" ? searchParams.search : undefined;
 
   const {
     totalRevenue,
@@ -154,7 +164,7 @@ export default async function AdminRevenuesPage(props: {
     transactions,
     totalPages,
     totalTransactionsCount,
-  } = await getRevenueData(start, end, page, 10);
+  } = await getRevenueData(start, end, page, 10, search);
 
   const stats = [
     {
@@ -219,7 +229,7 @@ export default async function AdminRevenuesPage(props: {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="flex flex-col gap-8">
         {/* Top Earning Courses */}
         <div className="bg-white rounded-[2.5rem] shadow-sm border border-orange-50 p-8">
           <h3 className="font-black text-[#2D2D2D] text-lg mb-6">
