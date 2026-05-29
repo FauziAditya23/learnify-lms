@@ -23,7 +23,10 @@ import {
   Banknote,
   X,
   Download,
+  FileText,
 } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 
@@ -340,6 +343,7 @@ export default function PaymentTable({
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
   const [selectedRow, setSelectedRow] = useState<PaymentRow | null>(null);
   const limit = 15;
 
@@ -484,6 +488,126 @@ export default function PaymentTable({
     }
   };
 
+  // ── Export PDF ────────────────────────────────────────────────────────────────
+  const handleExportPDF = async () => {
+    setPdfLoading(true);
+    try {
+      const params = new URLSearchParams({
+        status: statusFilter,
+        search,
+      });
+      const res = await fetch(`/api/admin/payments/export?${params}`);
+      if (!res.ok) throw new Error("Gagal mengambil data untuk export");
+      const json = await res.json();
+      const rows: PaymentRow[] = json.data;
+
+      const doc = new jsPDF({
+        orientation: "landscape",
+        unit: "mm",
+        format: "a4",
+      });
+
+      // ── Header Laporan ──────────────────────────────────────────────────────────
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(18);
+      doc.setTextColor(45, 45, 45); // #2D2D2D
+      doc.text("LAPORAN STATUS PEMBAYARAN", 14, 15);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
+
+      const filterLabel = statusFilter === "all" ? "Semua Status" : STATUS_CONFIG[statusFilter]?.label ?? statusFilter;
+      const searchLabel = search.trim() ? search : "-";
+      doc.text(`Filter Status: ${filterLabel}  |  Kata Kunci: ${searchLabel}`, 14, 21);
+      doc.text(`Waktu Unduh: ${new Date().toLocaleString("id-ID")}`, 14, 26);
+      doc.text(`Jumlah Baris: ${rows.length}`, 14, 31);
+
+      // Garis pemisah
+      doc.setDrawColor(220, 220, 220);
+      doc.line(14, 35, 283, 35);
+
+      // ── Table Data ────────────────────────────────────────────────────────────
+      const STATUS_LABEL_PDF: Record<string, string> = {
+        pending: "Pending",
+        paid: "Lunas",
+        failed: "Gagal",
+        expired: "Kedaluwarsa",
+        cancelled: "Dibatalkan",
+      };
+
+      const tableHeaders = [
+        "No",
+        "No Invoice",
+        "Student",
+        "Email",
+        "Kursus",
+        "Total (IDR)",
+        "Diskon (IDR)",
+        "Metode",
+        "Status",
+        "Tanggal",
+      ];
+
+      const tableRows = rows.map((row, idx) => [
+        idx + 1,
+        row.invoiceNumber,
+        row.student.name,
+        row.student.email,
+        row.course?.title ?? "-",
+        formatIDR(row.totalAmount),
+        row.discountAmt > 0 ? formatIDR(row.discountAmt) : "-",
+        row.latestTransaction
+          ? (PAYMENT_TYPE_LABEL[row.latestTransaction.paymentType] ?? row.latestTransaction.paymentType)
+          : "-",
+        STATUS_LABEL_PDF[row.invoiceStatus] ?? row.invoiceStatus,
+        formatDate(row.createdDate),
+      ]);
+
+      autoTable(doc, {
+        head: [tableHeaders],
+        body: tableRows,
+        startY: 40,
+        theme: "striped",
+        headStyles: {
+          fillColor: [255, 107, 74], // Learnify orange color: #FF6B4A
+          textColor: [255, 255, 255],
+          fontStyle: "bold",
+          fontSize: 9,
+          halign: "left",
+        },
+        bodyStyles: {
+          fontSize: 8,
+          textColor: [50, 50, 50],
+        },
+        alternateRowStyles: {
+          fillColor: [250, 250, 250],
+        },
+        margin: { top: 40, left: 14, right: 14 },
+        didDrawPage: (data) => {
+          const pageCount = doc.internal.getNumberOfPages();
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(8);
+          doc.setTextColor(150, 150, 150);
+          doc.text(
+            `Halaman ${data.pageNumber} dari ${pageCount}`,
+            data.settings.margin.left,
+            doc.internal.pageSize.height - 10
+          );
+        },
+      });
+
+      const timestamp = new Date().toISOString().slice(0, 10);
+      const fileFilter = statusFilter === "all" ? "semua" : statusFilter;
+      doc.save(`payment-status_${fileFilter}_${timestamp}.pdf`);
+    } catch (err) {
+      console.error("PDF export error:", err);
+      alert("Gagal mengekspor data ke PDF. Silakan coba lagi.");
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
   // Summary stat totals
   const totalPaid = stats.find((s) => s.status === "paid")?.totalAmount ?? 0;
   const totalPending = stats.find((s) => s.status === "pending")?.count ?? 0;
@@ -578,7 +702,7 @@ export default function PaymentTable({
 
             <button
               onClick={handleExportCSV}
-              disabled={exportLoading || loading}
+              disabled={exportLoading || pdfLoading || loading}
               title="Export data sesuai filter aktif ke CSV"
               className="flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-emerald-200 text-emerald-600 bg-emerald-50 hover:bg-emerald-100 hover:border-emerald-300 text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -588,6 +712,20 @@ export default function PaymentTable({
                 <Download size={14} />
               )}
               {exportLoading ? "Mengekspor..." : "Export CSV"}
+            </button>
+
+            <button
+              onClick={handleExportPDF}
+              disabled={exportLoading || pdfLoading || loading}
+              title="Export data sesuai filter aktif ke PDF"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-rose-200 text-rose-600 bg-rose-50 hover:bg-rose-100 hover:border-rose-300 text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {pdfLoading ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                <FileText size={14} />
+              )}
+              {pdfLoading ? "Mengekspor..." : "Export PDF"}
             </button>
           </div>
         </div>
