@@ -239,7 +239,7 @@ export default function AnalyticsClient() {
         headStyles: { fillColor: [80, 227, 194], fontStyle: "bold", textColor: [45, 45, 45] }, // Tealish
         margin: { left: 14, right: 14 },
         didDrawPage: (pageData) => {
-          const pageCount = doc.internal.getNumberOfPages();
+          const pageCount = doc.getNumberOfPages();
           doc.setFont("helvetica", "normal");
           doc.setFontSize(8);
           doc.setTextColor(150, 150, 150);

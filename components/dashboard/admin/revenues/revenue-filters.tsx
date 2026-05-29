@@ -215,7 +215,7 @@ export default function RevenueFilters() {
           }
         },
         didDrawPage: (data) => {
-          const pageCount = doc.internal.getNumberOfPages();
+          const pageCount = doc.getNumberOfPages();
           doc.setFont("helvetica", "normal");
           doc.setFontSize(8);
           doc.setTextColor(150, 150, 150);

@@ -586,7 +586,7 @@ export default function PaymentTable({
         },
         margin: { top: 40, left: 14, right: 14 },
         didDrawPage: (data) => {
-          const pageCount = doc.internal.getNumberOfPages();
+          const pageCount = doc.getNumberOfPages();
           doc.setFont("helvetica", "normal");
           doc.setFontSize(8);
           doc.setTextColor(150, 150, 150);
